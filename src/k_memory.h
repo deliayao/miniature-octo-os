@@ -15,9 +15,9 @@
 
 // heap linked list node
 typedef struct Node {
-	Node* next;
+	struct Node* next;
 	int isFree;
-}
+} Node;
 
 /* ----- Variables ----- */
 /* This symbol is defined in the scatter file (see RVCT Linker User Guide) */  
@@ -30,6 +30,6 @@ void memory_init(void);
 U32 *alloc_stack(U32 size_b);
 void *k_request_memory_block(void);
 int k_release_memory_block(void *);
-int is_valid_memory_block(Node *);
+int is_valid_memory_block(void *);
 
 #endif /* ! K_MEM_H_ */
