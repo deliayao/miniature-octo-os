@@ -11,7 +11,8 @@ typedef enum {
     NEW = 0,
     READY,
     RUNNING,
-    BLOCKED
+    BLOCKED_MEM,
+    BLOCKED_IO
 } ProcessState;
 
 // Process Control Block data structure

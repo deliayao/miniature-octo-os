@@ -1,16 +1,14 @@
 /**
  * @file:   k_process.h
- * @brief:  process management hearder file
- * @author: Yiqing Huang
- * @author: Thomas Reidemeister
- * @date:   2014/01/17
+ * @brief:  process management header file
  * NOTE: Assuming there are only two user processes in the system
  */
 
 #ifndef K_PROCESS_H_
 #define K_PROCESS_H_
 
-#include "k_rtx.h"
+#include "Utilities/k_rtx.h"
+#include "Utilities/PriorityQueue.h"
 
 /* ----- Definitions ----- */
 

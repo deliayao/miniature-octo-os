@@ -1,14 +1,13 @@
 /**
  * @file:   k_memory.h
- * @brief:  kernel memory managment header file
- * @author: Yiqing Huang
- * @date:   2014/01/17
+ * @brief:  kernel memory management header file
  */
  
 #ifndef K_MEM_H_
 #define K_MEM_H_
 
-#include "k_rtx.h"
+#include "Utilities/k_rtx.h"
+#include "Utilities/ProcessQueue.h"
 
 /* ----- Definitions ----- */
 #define RAM_END_ADDR 0x10008000
