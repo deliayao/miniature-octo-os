@@ -1,73 +1,50 @@
-/**
- * @file:   usr_proc.c
- * @brief:  Two user processes: proc1 and proc2
+/* @brief: rtx.h User API prototype, this is only an example
  * @author: Yiqing Huang
- * @date:   2014/01/17
- * NOTE: Each process is in an infinite loop. Processes never terminate.
+ * @date: 2014/01/17
  */
+#ifndef RTX_H_
+#define RTX_H_
 
-#include "rtx.h"
-#include "uart_polling.h"
-#include "usr_proc.h"
+/* ----- Definitations ----- */
+#define RTX_ERR -1
+#define NULL 0
+#define NUM_TEST_PROCS 6
+/* Process Priority. The bigger the number is, the lower the priority is*/
+#define HIGH    0
+#define MEDIUM  1
+#define LOW     2
+#define LOWEST  3
 
-#ifdef DEBUG_0
-#include "printf.h"
-#endif /* DEBUG_0 */
+/* ----- Types ----- */
+typedef unsigned int U32;
 
 /* initialization table item */
-PROC_INIT g_test_procs[NUM_TEST_PROCS];
+typedef struct proc_init
+{	
+	int m_pid;	        /* process id */ 
+	int m_priority;         /* initial priority, not used in this example. */ 
+	int m_stack_size;       /* size of stack in words */
+	void (*mpf_start_pc) ();/* entry point of the process */    
+} PROC_INIT;
 
-void set_test_procs() {
-	int i;
-	for( i = 0; i < NUM_TEST_PROCS; i++ ) {
-		g_test_procs[i].m_pid=(U32)(i+1);
-		g_test_procs[i].m_priority=LOWEST;
-		g_test_procs[i].m_stack_size=0x100;
-	}
-  
-	g_test_procs[0].mpf_start_pc = &proc1;
-	g_test_procs[1].mpf_start_pc = &proc2;
-}
+/* ----- RTX User API ----- */
+#define __SVC_0  __svc_indirect(0)
 
+extern void k_rtx_init(void);
+#define rtx_init() _rtx_init((U32)k_rtx_init)
+extern void __SVC_0 _rtx_init(U32 p_func);
 
-/**
- * @brief: a process that prints five uppercase letters
- *         and then yields the cpu.
- */
-void proc1(void)
-{
-	int i = 0;
-	int ret_val = 10;
-	while ( 1) {
-		if ( i != 0 && i%5 == 0 ) {
-			uart0_put_string("\n\r");
-			ret_val = release_processor();
-#ifdef DEBUG_0
-			printf("proc1: ret_val=%d\n", ret_val);
-#endif /* DEBUG_0 */
-		}
-		uart0_put_char('A' + i%26);
-		i++;
-	}
-}
+extern int k_release_processor(void);
+#define release_processor() _release_processor((U32)k_release_processor)
+extern int __SVC_0 _release_processor(U32 p_func);
 
-/**
- * @brief: a process that prints five numbers
- *         and then yields the cpu.
- */
-void proc2(void)
-{
-	int i = 0;
-	int ret_val = 20;
-	while ( 1) {
-		if ( i != 0 && i%5 == 0 ) {
-			uart0_put_string("\n\r");
-			ret_val = release_processor();
-#ifdef DEBUG_0
-			printf("proc2: ret_val=%d\n", ret_val);
-#endif /* DEBUG_0 */
-		}
-		uart0_put_char('0' + i%10);
-		i++;
-	}
-}
+extern void *k_request_memory_block(void);
+#define request_memory_block() _request_memory_block((U32)k_request_memory_block)
+extern void *_request_memory_block(U32 p_func) __SVC_0;
+/* __SVC_0 can also be put at the end of the function declaration */
+
+extern int k_release_memory_block(void *);
+#define release_memory_block(p_mem_blk) _release_memory_block((U32)k_release_memory_block, p_mem_blk)
+extern int _release_memory_block(U32 p_func, void *p_mem_blk) __SVC_0;
+
+#endif /* !RTX_H_ */
