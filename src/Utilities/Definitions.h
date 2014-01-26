@@ -19,7 +19,7 @@
 #define INITIAL_xPSR 0x01000000 // user process initial xPSR value
 
 #define NULL 0
-#define NUM_TEST_PROCS 2
+#define NUM_TEST_PROCS 6
 
 // process priority
 // the higher the number, the lower the priority
