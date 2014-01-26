@@ -34,28 +34,21 @@ void set_test_procs() {
 	null_proc.m_stack_size = 0x100;
 	
 	g_test_procs[0].m_priority = HIGH;
-	g_test_procs[1].m_priority = MEDIUM;
-	g_test_procs[2].m_priority = LOW;
+	g_test_procs[1].m_priority = HIGH;
+	g_test_procs[2].m_priority = MEDIUM;
 	g_test_procs[3].m_priority = LOWEST;
 	g_test_procs[4].m_priority = MEDIUM;
 	g_test_procs[5].m_priority = LOW;
 	
 	null_proc.mpf_start_pc = &null_process;
  
-	//case one: 
 	g_test_procs[0].mpf_start_pc = &proc1;
 	g_test_procs[1].mpf_start_pc = &proc2;
-	
 	g_test_procs[2].mpf_start_pc = &proc3;
 	g_test_procs[3].mpf_start_pc = &proc4;
 	g_test_procs[4].mpf_start_pc = &proc5;
 	g_test_procs[5].mpf_start_pc = &proc6;
 }
-
-/**
- * @brief: a process that prints five uppercase letters
- *         and then yields the cpu.
- */
 
 void null_process() {
 	while(1){
@@ -63,93 +56,187 @@ void null_process() {
 	}
 }
 
+/**
+ * @brief: a process that requests 10 memory blocks 
+ *         and then yields the cpu.
+ *         It release all the memory blocks that it has
+ *         and then yields the cpu.
+ */
 void proc1(void) {
-	void* mem_ptr[10];
 	int i;
+	void* mem_ptr[10];
 	while(1){
+		uart0_put_string("process 1 starts~\n");
+		//start requesting 10 memory blocks for proc1 
 		for(i = 0; i < 10; i ++) {
 			mem_ptr[i] = request_memory_block();
-			#ifdef DEBUG_0
-			printf("proc1 has %d memory blocks\n", i+1);
-			#endif /* DEBUG_0 */
+		  uart0_put_string("proc 1 requesting memory ");
+			uart0_put_char('0'+i);
+			uart0_put_string("\n");
 		}
-		release_processor(); // Proc2
+		
+		//release processor to run the next process
+		release_processor();
+		
+		//release all the memory blocks that proc1 has
 		for(i = 0; i < 10; i ++) {
+			//before releasing memory block, check if the pointer is not NULL
 			if(mem_ptr[i] != NULL){
 				release_memory_block(mem_ptr[i]);
+			uart0_put_string("proc 1 releasing memory ");
+			uart0_put_char('0'+i);
+			uart0_put_string("\n");
 			}
 		}
-		release_processor(); //Proc4
-		
-		for(i = 0; i < 10; i ++) {
-			mem_ptr[i] = request_memory_block();
-			#ifdef DEBUG_0
-			printf("proc1: test3_proc1 has %d memory blocks\n", i+1);
-			#endif /* DEBUG_0 */
-		}
-		
-		#ifdef DEBUG_0
-		printf("proc1: test4_This should not be printed as proc1 gets blocked.");
-		#endif /* DEBUG_0 */
-	}
-}
-
-void proc2(void){
-	void* mem_ptr[2];
-	int i;
-	while(1){
-		for(i = 0; i < 2; i ++) {
-			mem_ptr[i] = request_memory_block();
-			#ifdef DEBUG_0
-				printf("proc2: test1_proc2 gets blocked\n"); //test one it should not print anything 
-			#endif /* DEBUG_0 */
-		}
+		uart0_put_string("process 1 done~\n");
+		//release processor to run the next process
 		release_processor();
 	}
 }
+
+/**
+ * @brief: a process that requests 1 memory block 
+ *         and then yields the cpu.
+ */
+void proc2(void){
+	void* mem_ptr;
+	while(1){
+		uart0_put_string("sidfjidfjiasjfoiajdfioasdf\n");
+		
+		//request for one memory blcok
+		mem_ptr = request_memory_block();
+		
+		//if proc2 gets blocked the strings below won't be printed
+		uart0_put_string("proc 2 requesting memory ");
+		uart0_put_string("\n");
+		
+		//release processor to run the next process
+		release_processor();
+	}
+}
+
+/**
+ * @brief: a process that requests 5 memory blocks 
+ *         and then yields the cpu.
+ *         It release all the memory blocks that it has
+ *         and then yields the cpu.
+ */
 void proc3(void){
 	void* mem_ptr[5];
 	int i;
 	while(1){
-		#ifdef DEBUG_0
-		printf("proc4: test6_this is the last print.\n");
-		#endif /* DEBUG_0 */
+					uart0_put_string("proc 3 starts~\n");
 		for(i = 0; i < 5; i++){
+			//request 5 memory blcoks 
 			mem_ptr[i] = request_memory_block();
-			#ifdef DEBUG_0
-				printf("proc4: test2_proc4 gets %d memory blocks.\n", i+1); //prints 1 to 5
-			#endif /* DEBUG_0 */
+			uart0_put_string("proc 3 requesting memory ");
+			uart0_put_char('0'+i);
+			uart0_put_string("\n");
 			
 		}
 		release_processor();
 		
 		for(i = 0; i < 5; i++){
+			// release all the memory blocks that proc3 has 
 			if(mem_ptr[i] != NULL){
 				release_memory_block(mem_ptr[i]);
+			uart0_put_string("proc 3 releasing memory ");
+			uart0_put_char('0'+i);
+			uart0_put_string("\n");
 			}
 		}
 		release_processor();
-		
-		#ifdef DEBUG_0
-		printf("proc4: test5_this gets printed.\n");
-		#endif /* DEBUG_0 */
 	}
 }
+
+/**
+ * @brief: a process that only prints five numbers
+ *         and then yields the cpu.
+ */
 void proc4(void){
 	int i = 0;
-        int ret_val = 10;
-        while ( 1) {
-                if ( i != 0 && i%5 == 0 ) {
-                        uart0_put_string("\n\r");
-                        ret_val = release_processor();
-#ifdef DEBUG_0
-                        printf("proc1: ret_val=%d\n", ret_val);
-#endif /* DEBUG_0 */
-                }
-                uart0_put_char('A' + i%26);
-                i++;
-        }
+  int ret_val;
+  while (1) {
+		// a process that only prints five numbers 
+		if ( i != 0 && i%5 == 0 ) {
+			uart0_put_string("\n\r");
+			ret_val = release_processor();
+		}
+		uart0_put_char('0' + i%10);
+		i++;
+	}
 }
-void proc5(void){}
-void proc6(void){}
+
+/**
+ * @brief: a process that requests 8 memory blocks 
+ *         and then yields the cpu.
+ *         It release all the memory blocks that it has
+ *         and then yields the cpu.
+ */
+void proc5(void){
+	int i;
+	void* mem_ptr[8];
+	while(1) {
+					uart0_put_string("proc 5 starts~\n");
+		for(i = 0; i < 10; i ++) {
+			//request 10 memory blocks
+			mem_ptr[i] = request_memory_block();
+			uart0_put_string("proc 5 requesting memory ");
+			uart0_put_char('0'+i);
+			uart0_put_string("\n");
+		}
+		release_processor();
+	
+		for(i = 0; i < 8; i ++) {
+			// release all memory blocks that proc 5 has
+			if(mem_ptr[i] != NULL) {
+				release_memory_block(mem_ptr[i]);
+			uart0_put_string("proc 5 requesting memory ");
+			uart0_put_char('0'+i);
+			uart0_put_string("\n");
+			}
+		}	 
+	
+		release_processor();
+	}
+}
+
+/**
+ * @brief: a process that requests 2 memory blocks 
+ *         and then yields the cpu.
+ *         It release only one memory block
+ *         and then yields the cpu.
+ */
+void proc6(void){
+	void* mem_ptr_one;
+	void* mem_ptr_two;
+	while(1) {
+		// request 2 memory blocks
+			uart0_put_string("proc 6 starts~\n");
+		if (mem_ptr_one == NULL && mem_ptr_two == NULL) {
+			mem_ptr_one = request_memory_block();
+			mem_ptr_two = request_memory_block();
+		}
+		else if (mem_ptr_one == NULL) {
+			mem_ptr_one = request_memory_block();
+		}
+		else {
+			mem_ptr_two = request_memory_block();
+		}
+		uart0_put_string("proc 6 requesting memory ");
+		uart0_put_string("\n");
+		release_processor();
+		if (mem_ptr_one != NULL) {
+			// it only release one memory
+			release_memory_block(mem_ptr_one);
+		}
+		else {
+			release_memory_block(mem_ptr_two);
+		}
+		uart0_put_string("proc 6 requesting memory ");
+		uart0_put_string("\n");
+		release_processor();
+	}
+}
+
 
