@@ -6,29 +6,7 @@
 #ifndef _PROCESS_QUEUE_
 #define _PROCESS_QUEUE_
 
-// process states
-typedef enum {
-    NEW = 0,
-    READY,
-    RUNNING,
-    BLOCKED_MEM,
-    BLOCKED_IO
-} ProcessState;
-
-// Process Control Block data structure
-// these act as the nodes in a process queue
-typedef struct PCB {
-    U32 m_PID; // process id
-    U32* m_ProcessSP; // pointer to top of process stack
-    void* m_ProcessPC; // pointer to the next instruction to execute in the program code
-                       // when the process is activated
-                       // if the process is new, this points to the start of the process
-
-    int m_Priority; // process priority
-    ProcessState m_State; // current state of the process
-
-    struct PCB* m_Next; // pointer to the next process in the queue
-} PCB;
+#include "Types.h"
 
 typedef struct ProcessQueue {
     PCB* m_First;
@@ -47,4 +25,7 @@ int enqueue(ProcessQueue*, PCB*);
 // (this also effectively clears the queue)
 void initializeQueue(ProcessQueue*);
 
-#endif _PROCESS_QUEUE_
+// returns 1 if the queue is empty
+int isEmptyProcessQueue(ProcessQueue*);
+
+#endif /* _PROCESS_QUEUE_ */

@@ -6,8 +6,9 @@
 #ifndef _PRIORITY_QUEUE_
 #define _PRIORITY_QUEUE_
 
+#include "Definitions.h"
+#include "Types.h"
 #include "ProcessQueue.h"
-#include "rtx.h" // for priority definitions
 
 typedef struct PriorityQueue {
     ProcessQueue m_Queues[LOWEST + 1]; // underlying array of queues
@@ -32,4 +33,7 @@ ProcessQueue* getQueueAtPriority(PriorityQueue*, int);
 // initializes the priority queue
 void initializePriorityQueue(PriorityQueue*);
 
-#endif _PRIORITY_QUEUE_
+// returns 1 if the priority queue is empty
+int isEmptyPriorityQueue(PriorityQueue*);
+
+#endif /* _PRIORITY_QUEUE_ */

@@ -3,10 +3,9 @@
  * @brief:  kernel memory managment routines
  */
 
+#include "Utilities/MemoryQueue.h"
+#include "k_process.h"
 #include "k_memory.h"
-#define BLOCK_SIZE 128 // bytes
-#define NUM_BLOCKS 10 // TODO: find out what the actual available number of blocks is
-
 
 #ifdef DEBUG_0
 #include "printf.h"
@@ -16,7 +15,8 @@
 U32 *gp_stack; /* The last allocated stack low address. 8 bytes aligned */
                /* The first stack starts at the RAM high address */
 	           /* stack grows down. Fully decremental stack */
-Node *h_begin; /* Bottom of heap. Heap grows up from here. */
+						 
+MemoryQueue heap; // heap representation
 
 /**
  * @brief: Initialize RAM as follows:
@@ -49,25 +49,22 @@ Node *h_begin; /* Bottom of heap. Heap grows up from here. */
 void memory_init(void) {
 	U8 *p_end = (U8 *)&Image$$RW_IRAM1$$ZI$$Limit;
 	int i;
-
-	Node* currentNode;
-	Node* nextNode;
   
 	// 4 bytes padding
 	p_end += 4;
 
 	// allocate memory for pcb pointers
-	gp_pcbs = (PCB **)p_end;
-	p_end += NUM_TEST_PROCS * sizeof(PCB *);
+	//gp_pcbs = (PCB **)p_end;
+	//p_end += NUM_TEST_PROCS * sizeof(PCB *);
   
 	for ( i = 0; i < NUM_TEST_PROCS; i++ ) {
-		gp_pcbs[i] = (PCB *)p_end;
+		processTable[i] = (PCB *)p_end;
 		p_end += sizeof(PCB); 
 	}
 
 #ifdef DEBUG_0
-	printf("gp_pcbs[0] = 0x%x \n", gp_pcbs[0]);
-	printf("gp_pcbs[1] = 0x%x \n", gp_pcbs[1]);
+	printf("gp_pcbs[0] = 0x%x \n", processTable[0]);
+	printf("gp_pcbs[1] = 0x%x \n", processTable[1]);
 #endif
 
     // prepare for alloc_stack() to allocate memory for stacks
@@ -75,22 +72,9 @@ void memory_init(void) {
 	if ((U32)gp_stack & 0x04) { /* 8 bytes alignment */
 		--gp_stack; 
 	}
-  
-	// allocate memory for heap
-	h_begin = (Node *)p_end; /**** Check this if stuff breaks ****/
-    currentNode = h_begin;
 	
-    // partition heap memory into a linked list of equal sized nodes
-	for (i = 0; i < NUM_BLOCKS - 1; i++) {
-		nextNode = currentNode + sizeof(Node) + BLOCK_SIZE;
-		currentNode->isFree = 1; // 1 is true
-		currentNode->next = nextNode;
-		currentNode = nextNode;
-	}
-
-	// make sure last node points to null
-	currentNode->isFree = 1;
-	currentNode->next = (Node *)NULL;
+	// initialize heap
+  initializeMemoryQueue(&heap, (Node *)p_end);
 	
 #ifdef DEBUG_0
 	printf("heap initialized \n");
@@ -119,22 +103,16 @@ U32 *alloc_stack(U32 size_b) {
 }
 
 void *k_request_memory_block(void) {
-	Node* currentNode = h_begin;
-
 #ifdef DEBUG_0 	
 	printf("k_request_memory_block: entering...\n");
 #endif /* ! DEBUG_0 */
-
-    // find the first free node
-	while (currentNode != NULL) {
-		if (currentNode->isFree) {
-			currentNode->isFree = 0;
-			return (void *)(currentNode + sizeof(Node));
-		}
-		currentNode = currentNode->next;
-		// TODO: weird low level stuff...
+	
+	while (isEmptyMemoryQueue(&heap)) {
+		currentProcess->m_State = BLOCKED_MEM;
+		k_release_processor();
 	}
-	return (void *) NULL;
+	
+	return (dequeueNode(&heap) + sizeof(Node));
 }
 
 int k_release_memory_block(void *p_mem_blk) {
@@ -144,28 +122,8 @@ int k_release_memory_block(void *p_mem_blk) {
    printf("k_release_memory_block: releasing block @ 0x%x\n", p_mem_blk);
 #endif /* ! DEBUG_0 */
 
-	if (is_valid_memory_block(p_mem_blk)) {
-		if (!memoryToFree->isFree) {
-			memoryToFree->isFree = 1;
-			return RTX_OK;
-		}
+	if (isValidNode(&heap, memoryToFree)) {
+			return handleMemoryRelease();
 	} 
 	return RTX_ERR;
-}
-
-// does not check if memory block is free
-int is_valid_memory_block(void *memory_block) {
-    // get the address of the Node associated with the memory block
-    // (this accounts for the header size of the Node)
-    // convert pointers to integers for address comparisons
-	U32 nodeAddress = (U32)memory_block - (U32)sizeof(Node);
-	U32 heapBeginAddress = (U32)h_begin;
-	
-	// check that nodeAddress is between h_begin and the last node of the linked list
-	if (nodeAddress < heapBeginAddress || nodeAddress > heapBeginAddress + (NUM_BLOCKS - 1) * (sizeof(Node) + BLOCK_SIZE)) {
-		return 0;
-	}
-	
-	// check that nodeAddress occurs at some integer multiple of sizeof(Node) + BLOCK_SIZE
-	return ((nodeAddress - heapBeginAddress) % (sizeof(Node) + BLOCK_SIZE) == 0);
 }

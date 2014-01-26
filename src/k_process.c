@@ -12,20 +12,22 @@
 
 #include <LPC17xx.h>
 #include <system_LPC17xx.h>
-#include "uart_polling.h"
+
+#include "Polling/uart_polling.h"
+#include "Utilities/PriorityQueue.h"
+
 #include "k_process.h"
 
 #ifdef DEBUG_0
 #include "printf.h"
 #endif /* DEBUG_0 */
 
-/* ----- Global Variables ----- */
-PCB **gp_pcbs;                  /* array of pcbs */
-PCB *gp_current_process = NULL; /* always point to the current RUNNING process */
+PCB* processTable[NUM_TEST_PROCS]; // kernel process table
+PCB* currentProcess; // points to the current RUNNING process
 
 /* Priority queues */
-PriorityQueue ready_queue;
-PriorityQueue blocked_on_memory_queue;
+PriorityQueue readyQueue;
+PriorityQueue blockedOnMemoryQueue;
 
 /* process initialization table */
 PROC_INIT g_proc_table[NUM_TEST_PROCS];
@@ -51,9 +53,9 @@ void process_init() {
 	/* initialize exception stack frame (i.e. initial context) for each process */
 	for ( i = 0; i < NUM_TEST_PROCS; i++ ) {
 		int j;
-		(gp_pcbs[i])->m_PID = (g_proc_table[i]).m_pid;
-		(gp_pcbs[i])->m_Priority = (g_proc_table[i]).m_priority;
-		(gp_pcbs[i])->m_State = NEW; 
+		(processTable[i])->m_PID = (g_proc_table[i]).m_pid;
+		(processTable[i])->m_Priority = (g_proc_table[i]).m_priority;
+		(processTable[i])->m_State = NEW; 
 		
 		sp = alloc_stack((g_proc_table[i]).m_stack_size);
 		*(--sp)  = INITIAL_xPSR;      // user process initial xPSR  
@@ -61,17 +63,20 @@ void process_init() {
 		for ( j = 0; j < 6; j++ ) { // R0-R3, R12 are cleared with 0
 			*(--sp) = 0x0;
 		}
-		(gp_pcbs[i])->m_ProcessSP = sp;
+		(processTable[i])->m_ProcessSP = sp;
 	}
 	
 	// initialize priority queues
-	initializePriorityQueue(&ready_queue);
-	initializePriorityQueue(&blocked_on_memory_queue);
+	initializePriorityQueue(&readyQueue);
+	initializePriorityQueue(&blockedOnMemoryQueue);
 	
 	// all processes are currently new and ready
 	for (i = 0; i < NUM_TEST_PROCS; i++) {
-		enqueueAtPriority(&ready_queue, gp_pcbs[i]);
+		enqueueAtPriority(&readyQueue, processTable[i]);
 	}
+	
+	// no running process
+	currentProcess = NULL;
 }
 
 /*@brief: scheduler, pick the pid of the next to run process
@@ -82,7 +87,7 @@ void process_init() {
  */
 
 PCB *scheduler(void) {
-	return dequeueHighest(&ready_queue);
+	return dequeueHighest(&readyQueue);
 }
 
 /*@brief: switch out old pcb (p_pcb_old), run the new pcb (gp_current_process)
@@ -93,34 +98,69 @@ PCB *scheduler(void) {
  *POST: if gp_current_process was NULL, then it gets set to pcbs[0].
  *      No other effect on other global variables.
  */
-int process_switch(PCB *p_pcb_old) {
-	ProcessState state;
-	state = gp_current_process->m_State;
-
-	if (state == NEW) {
-		if (gp_current_process != p_pcb_old && p_pcb_old->m_State != NEW) {
-			p_pcb_old->m_State = READY;
-			p_pcb_old->m_ProcessSP = (U32 *) __get_MSP();
-		}
-		gp_current_process->m_State = RUNNING;
-		__set_MSP((U32) gp_current_process->m_ProcessSP);
-		__rte();  // pop exception stack frame from the stack for a new processes
-	} 
+//int process_switch(PCB *p_pcb_old) {
+int process_switch() {
+	PCB* oldProcess;
 	
-	/* The following will only execute if the if block above is FALSE */
-
-	if (gp_current_process != p_pcb_old) {
-		if (state == READY) { 		
-			p_pcb_old->m_State = READY; 
-			p_pcb_old->m_ProcessSP = (U32 *) __get_MSP(); // save the old process's sp
-			gp_current_process->m_State = RUNNING;
-			__set_MSP((U32) gp_current_process->m_ProcessSP); //switch to the new proc's stack    
+	if (currentProcess != NULL) {
+		// add process to appropriate queue and save context
+		if (currentProcess->m_State == BLOCKED_MEM) {
+			enqueueAtPriority(&blockedOnMemoryQueue, currentProcess);
 		} else {
-			gp_current_process = p_pcb_old; // revert back to the old proc on error
-			return RTX_ERR;
-		} 
+			enqueueAtPriority(&readyQueue, currentProcess);
+			currentProcess->m_State = READY;
+		}
+		currentProcess->m_ProcessSP = (U32 *)__get_MSP();
 	}
+	
+	oldProcess = currentProcess;
+	currentProcess = scheduler();
+	
+	// save context of old process if we're actually switching
+	if (currentProcess != oldProcess) {
+		if (currentProcess->m_State == READY || currentProcess->m_State == NEW) {
+			__set_MSP((U32) currentProcess->m_ProcessSP); // switch to the new processes's stack
+			
+			if (currentProcess->m_State == NEW) {
+				__rte(); // pop exception stack frame from the stack for a new processes
+			}
+		} else { // if the scheduler chose a process that isn't READY or NEW, something broke
+			currentProcess = oldProcess;
+			return RTX_ERR;
+		}
+	}
+	
+	currentProcess->m_State = RUNNING;
 	return RTX_OK;
+	
+// 	
+// 	ProcessState state;
+// 	state = currentProcess->m_State;
+
+// 	if (state == NEW) {
+// 		if (currentProcess != p_pcb_old && p_pcb_old->m_State != NEW) {
+// 			p_pcb_old->m_State = READY;
+// 			p_pcb_old->m_ProcessSP = (U32 *) __get_MSP();
+// 		}
+// 		currentProcess->m_State = RUNNING;
+// 		__set_MSP((U32) currentProcess->m_ProcessSP);
+// 		__rte();  // pop exception stack frame from the stack for a new processes
+// 	} 
+// 	
+// 	/* The following will only execute if the if block above is FALSE */
+
+// 	if (currentProcess != p_pcb_old) {
+// 		if (state == READY) { 		
+// 			p_pcb_old->m_State = READY; 
+// 			p_pcb_old->m_ProcessSP = (U32 *) __get_MSP(); // save the old process's sp
+// 			currentProcess->m_State = RUNNING;
+// 			__set_MSP((U32) currentProcess->m_ProcessSP); //switch to the new proc's stack    
+// 		} else {
+// 			currentProcess = p_pcb_old; // revert back to the old proc on error
+// 			return RTX_ERR;
+// 		} 
+// 	}
+// 	return RTX_OK;
 }
 /**
  * @brief release_processor(). 
@@ -128,18 +168,33 @@ int process_switch(PCB *p_pcb_old) {
  * POST: gp_current_process gets updated to next to run process
  */
 int k_release_processor(void) {
-	PCB *oldProcess = NULL;
+	/*PCB *oldProcess = NULL;
 	
-	oldProcess = gp_current_process; // save current process
-	gp_current_process = scheduler(); // get next scheduled process
+	oldProcess = currentProcess; // save current process
+	currentProcess = scheduler(); // get next scheduled process
 	
-	if (gp_current_process == NULL) {
-		gp_current_process = oldProcess; // revert back to the old process
+	if (currentProcess == NULL) {
+		currentProcess = oldProcess; // revert back to the old process
 		return RTX_ERR;
 	}
     if (oldProcess == NULL) {
-		oldProcess = gp_current_process;
+		oldProcess = currentProcess;
 	}
-	process_switch(oldProcess);
+	process_switch(oldProcess);*/
+	return process_switch();
+	//return RTX_OK;
+}
+
+int handleMemoryRelease(void) {
+	if (!isEmptyPriorityQueue(&blockedOnMemoryQueue)) {
+		// clear blocked on memory queue
+		PCB* process = dequeueHighest(&blockedOnMemoryQueue);
+		while (process != NULL) {
+			process->m_State = READY;
+			enqueueAtPriority(&readyQueue, process);
+			process = dequeueHighest(&blockedOnMemoryQueue);
+		}
+		return k_release_processor();
+	}
 	return RTX_OK;
 }

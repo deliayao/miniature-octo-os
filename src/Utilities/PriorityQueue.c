@@ -31,10 +31,10 @@ int enqueueAtPriority(PriorityQueue* priorityQueue, PCB* process) {
 	if (process->m_Priority < HIGH || process->m_Priority > LOWEST) {
 		return -1;
 	}
-	return enqueue(getQueueAtPriority(priorityQueue, process->m_Priority));
+	return enqueue(getQueueAtPriority(priorityQueue, process->m_Priority), process);
 }
 
-ProcessQueue* getQueueAtPriority(PriorityQueue* priorityQueue, int priorityQueue) {
+ProcessQueue* getQueueAtPriority(PriorityQueue* priorityQueue, int priority) {
     return &(priorityQueue->m_Queues[priority]);
 }
 
@@ -43,4 +43,14 @@ void initializePriorityQueue(PriorityQueue* priorityQueue) {
 	for (i = HIGH; i <= LOWEST; ++i) {
 		initializeQueue(getQueueAtPriority(priorityQueue, i));
 	}
+}
+
+int isEmptyPriorityQueue(PriorityQueue* priorityQueue) {
+	int i;
+	for (i = 0; i < LOWEST + 1; ++i) {
+		if (!isEmptyProcessQueue(&priorityQueue->m_Queues[i])) {
+			return 0;
+		}
+	}
+	return 1;
 }

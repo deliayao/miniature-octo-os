@@ -5,6 +5,8 @@
 
 #include "MemoryQueue.h"
 
+Node* initialFront = NULL;
+
 Node* dequeueNode(MemoryQueue* queue) {
     Node* front = queue->m_First; // this will be NULL if queue is empty
 
@@ -39,21 +41,21 @@ int enqueueNode(MemoryQueue* queue, Node* node) {
 
 void initializeMemoryQueue(MemoryQueue* queue, Node* first) {
     Node* currentNode;
+		Node* nextNode;
     int i;
 
+		initialFront = first;
     currentNode = first;
     
     // partition heap memory into a linked list of equal sized nodes
     for (i = 0; i < NUM_BLOCKS - 1; i++) {
         nextNode = currentNode + sizeof(Node) + BLOCK_SIZE;
-        currentNode->isFree = 1; // 1 is true
-        currentNode->next = nextNode;
+        currentNode->m_Next = nextNode;
         currentNode = nextNode;
     }
 
     // make sure last node points to null
-    currentNode->isFree = 1;
-    currentNode->next = (Node *)NULL;
+    currentNode->m_Next = (Node *)NULL;
 
     queue->m_First = first;
     queue->m_Last = currentNode;
@@ -61,4 +63,28 @@ void initializeMemoryQueue(MemoryQueue* queue, Node* first) {
 
 int isEmptyMemoryQueue(MemoryQueue* queue) {
     return queue->m_First == NULL;
+}
+
+int isValidNode(MemoryQueue* queue, Node* node) {
+		Node* currentNode = queue->m_First;
+	
+    // convert pointers to integers for address comparisons
+    U32 nodeAddress = (U32)node;
+    U32 heapBeginAddress = (U32)initialFront;
+		
+	
+    // check that nodeAddress is between the first and last node of the queue
+    if (nodeAddress < heapBeginAddress || nodeAddress > heapBeginAddress + (NUM_BLOCKS - 1) * (sizeof(Node) + BLOCK_SIZE)) {
+        return 0;
+    } else if ((nodeAddress - heapBeginAddress) % (sizeof(Node) + BLOCK_SIZE) != 0) { // check that nodeAddress occurs at some integer multiple of sizeof(Node) + BLOCK_SIZE
+		    return 0;
+		}
+		
+		while (currentNode != NULL) {
+				if (currentNode == node) { // the specified node is already in the queue
+						return 0;
+				}
+				currentNode = currentNode->m_Next;
+		}
+		return 1; // passed all the tests! :)
 }

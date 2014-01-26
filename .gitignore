@@ -3,3 +3,6 @@
 *.dep
 *.plg
 *.uvgui.*
+
+# Build Files
+*.o

@@ -6,13 +6,8 @@
 #ifndef _MEMORY_QUEUE_
 #define _MEMORY_QUEUE_
 
-#define BLOCK_SIZE 128 // bytes
-#define NUM_BLOCKS 10 // TODO: find out what the actual available number of blocks is
-
-// Memory node data structure for memory queue
-typedef struct Node {
-    struct Node m_Next; // pointer to the next memory block in the queue
-} Node;
+#include "Definitions.h"
+#include "Types.h"
 
 typedef struct MemoryQueue {
     Node* m_First;
@@ -32,5 +27,8 @@ void initializeMemoryQueue(MemoryQueue*, Node*);
 
 // returns 1 if the queue is empty
 int isEmptyMemoryQueue(MemoryQueue*);
+
+// returns 1 if the node occurs at a valid address
+int isValidNode(MemoryQueue*, Node*);
 
 #endif /*_MEMORY_QUEUE_*/

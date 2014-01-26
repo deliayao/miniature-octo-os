@@ -41,3 +41,7 @@ void initializeQueue(ProcessQueue* queue) {
     queue->m_First = NULL;
     queue->m_Last = NULL;
 }
+
+int isEmptyProcessQueue(ProcessQueue* queue) {
+	return queue->m_First == NULL;
+}
