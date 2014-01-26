@@ -11,7 +11,7 @@
 #include "ProcessQueue.h"
 
 typedef struct PriorityQueue {
-    ProcessQueue m_Queues[LOWEST + 1]; // underlying array of queues
+    ProcessQueue m_Queues[NUM_PRIORITIES]; // underlying array of queues
                                        // one queue for each priority level
 } PriorityQueue;
 

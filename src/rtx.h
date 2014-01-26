@@ -8,12 +8,13 @@
 /* ----- Definitations ----- */
 #define RTX_ERR -1
 #define NULL 0
-#define NUM_TEST_PROCS 6
+#define NUM_TEST_PROCS 7
 /* Process Priority. The bigger the number is, the lower the priority is*/
 #define HIGH    0
 #define MEDIUM  1
 #define LOW     2
 #define LOWEST  3
+#define NULL_PRIORITY 4
 
 /* ----- Types ----- */
 typedef unsigned int U32;

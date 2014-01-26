@@ -17,9 +17,10 @@
 
 // process management
 #define INITIAL_xPSR 0x01000000 // user process initial xPSR value
+#define NUM_PRIORITIES 5
 
 #define NULL 0
-#define NUM_TEST_PROCS 6
+#define NUM_TEST_PROCS 7
 
 // process priority
 // the higher the number, the lower the priority
@@ -27,6 +28,7 @@
 #define MEDIUM  1
 #define LOW     2
 #define LOWEST  3
+#define NULL_PRIORITY 4
 
 #ifdef DEBUG_0
 #define USR_SZ_STACK 0x200         /* user proc stack size 512B   */
