@@ -1,13 +1,15 @@
 /**
  * @brief:  uart_polling.h 
  * @author: Yiqing Huang
- * @date:   2014/01/05
+ * @date:   2014/01/12
  */
 
 #ifndef UART_POLLING_H_
 #define UART_POLLING_H_
 
 #include <stdint.h>  /* typedefs */
+
+#define NULL 0
 
 /* The following macros are taken from NXP sample UART project uart.h */
 #define LSR_RDR   0x01
@@ -42,5 +44,6 @@ int uart_init(int n_uart);      /* initialize the n_uart       */
 int uart_get_char(int n_uart);  /* read a char from the n_uart */
 int uart_put_char(int n_uart, unsigned char c);   /* write a char   to n_uart */
 int uart_put_string(int n_uart, unsigned char *s);/* write a string to n_uart */
+void putc(void *p, char c);     /* call back function for printf */
 
 #endif /* ! UART_POLLING_H_ */

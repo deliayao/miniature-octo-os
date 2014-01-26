@@ -98,7 +98,6 @@ PCB *scheduler(void) {
  *POST: if gp_current_process was NULL, then it gets set to pcbs[0].
  *      No other effect on other global variables.
  */
-//int process_switch(PCB *p_pcb_old) {
 int process_switch() {
 	PCB* oldProcess;
 	
@@ -124,43 +123,16 @@ int process_switch() {
 			if (currentProcess->m_State == NEW) {
 				__rte(); // pop exception stack frame from the stack for a new processes
 			}
+			currentProcess->m_State = RUNNING;
 		} else { // if the scheduler chose a process that isn't READY or NEW, something broke
 			currentProcess = oldProcess;
 			return RTX_ERR;
 		}
+	} else {
+		currentProcess->m_State = RUNNING;
 	}
 	
-	currentProcess->m_State = RUNNING;
 	return RTX_OK;
-	
-// 	
-// 	ProcessState state;
-// 	state = currentProcess->m_State;
-
-// 	if (state == NEW) {
-// 		if (currentProcess != p_pcb_old && p_pcb_old->m_State != NEW) {
-// 			p_pcb_old->m_State = READY;
-// 			p_pcb_old->m_ProcessSP = (U32 *) __get_MSP();
-// 		}
-// 		currentProcess->m_State = RUNNING;
-// 		__set_MSP((U32) currentProcess->m_ProcessSP);
-// 		__rte();  // pop exception stack frame from the stack for a new processes
-// 	} 
-// 	
-// 	/* The following will only execute if the if block above is FALSE */
-
-// 	if (currentProcess != p_pcb_old) {
-// 		if (state == READY) { 		
-// 			p_pcb_old->m_State = READY; 
-// 			p_pcb_old->m_ProcessSP = (U32 *) __get_MSP(); // save the old process's sp
-// 			currentProcess->m_State = RUNNING;
-// 			__set_MSP((U32) currentProcess->m_ProcessSP); //switch to the new proc's stack    
-// 		} else {
-// 			currentProcess = p_pcb_old; // revert back to the old proc on error
-// 			return RTX_ERR;
-// 		} 
-// 	}
-// 	return RTX_OK;
 }
 /**
  * @brief release_processor(). 
@@ -168,21 +140,7 @@ int process_switch() {
  * POST: gp_current_process gets updated to next to run process
  */
 int k_release_processor(void) {
-	/*PCB *oldProcess = NULL;
-	
-	oldProcess = currentProcess; // save current process
-	currentProcess = scheduler(); // get next scheduled process
-	
-	if (currentProcess == NULL) {
-		currentProcess = oldProcess; // revert back to the old process
-		return RTX_ERR;
-	}
-    if (oldProcess == NULL) {
-		oldProcess = currentProcess;
-	}
-	process_switch(oldProcess);*/
 	return process_switch();
-	//return RTX_OK;
 }
 
 int handleMemoryRelease(void) {

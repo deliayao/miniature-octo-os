@@ -52,14 +52,10 @@ void memory_init(void) {
   
 	// 4 bytes padding
 	p_end += 4;
-
-	// allocate memory for pcb pointers
-	//gp_pcbs = (PCB **)p_end;
-	//p_end += NUM_TEST_PROCS * sizeof(PCB *);
   
 	for ( i = 0; i < NUM_TEST_PROCS; i++ ) {
 		processTable[i] = (PCB *)p_end;
-		p_end += sizeof(PCB); 
+		p_end += sizeof(PCB);
 	}
 
 #ifdef DEBUG_0
@@ -77,7 +73,12 @@ void memory_init(void) {
   initializeMemoryQueue(&heap, (Node *)p_end);
 	
 #ifdef DEBUG_0
-	printf("heap initialized \n");
+	printf("IMage dollar sign thing RAM1: 0x%x \n", &Image$$RW_IRAM1$$ZI$$Limit);
+	printf("heap initialized, address: 0x%x \n", &heap);
+	printf("siZEOF noDe: 0x%x \n", sizeof(Node));
+
+	printf("Size of node pointer: %d \n", sizeof(Node*));
+
 #endif
 }
 
@@ -112,7 +113,7 @@ void *k_request_memory_block(void) {
 		k_release_processor();
 	}
 	
-	return (dequeueNode(&heap) + sizeof(Node));
+	return (void*)((U32)dequeueNode(&heap) + sizeof(Node));
 }
 
 int k_release_memory_block(void *p_mem_blk) {
@@ -123,6 +124,7 @@ int k_release_memory_block(void *p_mem_blk) {
 #endif /* ! DEBUG_0 */
 
 	if (isValidNode(&heap, memoryToFree)) {
+			enqueueNode(&heap, memoryToFree);
 			return handleMemoryRelease();
 	} 
 	return RTX_ERR;

@@ -42,14 +42,19 @@ int enqueueNode(MemoryQueue* queue, Node* node) {
 void initializeMemoryQueue(MemoryQueue* queue, Node* first) {
     Node* currentNode;
 		Node* nextNode;
+		
+		// for pointer arithmetic
+		U32 nextNodeAddress;
+	
     int i;
 
-		initialFront = first;
+		initialFront = first; // save initial beginning of heap
     currentNode = first;
-    
+		
     // partition heap memory into a linked list of equal sized nodes
-    for (i = 0; i < NUM_BLOCKS - 1; i++) {
-        nextNode = currentNode + sizeof(Node) + BLOCK_SIZE;
+    for (i = 0; i < (NUM_BLOCKS - 1); i++) {
+				nextNodeAddress = (U32)currentNode + sizeof(Node) + BLOCK_SIZE;
+				nextNode = (Node*)nextNodeAddress;
         currentNode->m_Next = nextNode;
         currentNode = nextNode;
     }
