@@ -107,8 +107,7 @@ void proc2(void){
 		release_processor();
 	}
 }
-void proc3(void){}
-void proc4(void){
+void proc3(void){
 	void* mem_ptr[5];
 	int i;
 	while(1){
@@ -135,6 +134,21 @@ void proc4(void){
 		printf("proc4: test5_this gets printed.\n");
 		#endif /* DEBUG_0 */
 	}
+}
+void proc4(void){
+	int i = 0;
+        int ret_val = 10;
+        while ( 1) {
+                if ( i != 0 && i%5 == 0 ) {
+                        uart0_put_string("\n\r");
+                        ret_val = release_processor();
+#ifdef DEBUG_0
+                        printf("proc1: ret_val=%d\n", ret_val);
+#endif /* DEBUG_0 */
+                }
+                uart0_put_char('A' + i%26);
+                i++;
+        }
 }
 void proc5(void){}
 void proc6(void){}
