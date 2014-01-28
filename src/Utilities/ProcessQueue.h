@@ -28,4 +28,8 @@ void initializeQueue(ProcessQueue*);
 // returns 1 if the queue is empty
 int isEmptyProcessQueue(ProcessQueue*);
 
+// attempts to find and remove the process with the given ID
+// returns NULL if the process is not found
+PCB* removeProcess(ProcessQueue*, int processId);
+
 #endif /* _PROCESS_QUEUE_ */

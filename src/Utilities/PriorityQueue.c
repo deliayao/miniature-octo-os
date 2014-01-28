@@ -56,5 +56,11 @@ int isEmptyPriorityQueue(PriorityQueue* priorityQueue) {
 }
 
 int updateProcessPriority(PriorityQueue* queue, int processId, int oldPriority, int newPriority) {
-	return 0;
+	PCB* process = removeProcess(getQueueAtPriority(queue, oldPriority), processId);
+	
+	if (process == NULL) {
+		return 0; // error
+	}
+	
+	return enqueue(getQueueAtPriority(queue, newPriority), process);
 }

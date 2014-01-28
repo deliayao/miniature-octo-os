@@ -45,3 +45,29 @@ void initializeQueue(ProcessQueue* queue) {
 int isEmptyProcessQueue(ProcessQueue* queue) {
 	return queue->m_First == NULL;
 }
+
+PCB* removeProcess(ProcessQueue* queue, int processId) {
+	PCB* currentProcess = queue->m_First;
+	PCB* nextProcess = queue->m_First;
+	
+	if (currentProcess->m_PID == processId) {
+		queue->m_First = currentProcess->m_Next;
+		if (queue->m_First == NULL) {
+			queue->m_Last = NULL;
+		}
+		return currentProcess;
+	}
+	
+	while (currentProcess != NULL) {
+		nextProcess = currentProcess->m_Next;
+		if (nextProcess != NULL && nextProcess->m_PID == processId) {
+			currentProcess->m_Next = nextProcess->m_Next;
+			if (currentProcess->m_Next == NULL) {
+				queue->m_Last = NULL;
+			}
+			return nextProcess;
+		}
+		currentProcess = nextProcess;
+	}
+	return (PCB*)NULL;
+}
