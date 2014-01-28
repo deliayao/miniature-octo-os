@@ -53,7 +53,7 @@ void memory_init(void) {
 	// 4 bytes padding
 	p_end += 4;
   
-	for ( i = 0; i < NUM_TEST_PROCS; i++ ) {
+	for ( i = 0; i < NUM_PROCS; i++ ) {
 		processTable[i] = (PCB *)p_end;
 		p_end += sizeof(PCB);
 	}

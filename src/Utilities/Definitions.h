@@ -20,7 +20,8 @@
 #define NUM_PRIORITIES 5
 
 #define NULL 0
-#define NUM_TEST_PROCS 7
+#define NUM_PROCS 7
+#define NUM_TEST_PROCS 6
 
 // process priority
 // the higher the number, the lower the priority

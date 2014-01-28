@@ -17,10 +17,6 @@ typedef unsigned int U32;
 typedef struct PCB {
     U32 m_PID; // process id
     U32* m_ProcessSP; // pointer to top of process stack
-    void* m_ProcessPC; // pointer to the next instruction to execute in the program code
-                       // when the process is activated
-                       // if the process is new, this points to the start of the process
-
     int m_Priority; // process priority
     ProcessState m_State; // current state of the process
 

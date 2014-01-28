@@ -10,8 +10,6 @@
 
 void set_test_procs(void);
 
-void null_process(void);
-
 void proc1(void);
 void proc2(void);
 void proc3(void);

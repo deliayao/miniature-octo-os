@@ -22,19 +22,20 @@
 #include "printf.h"
 #endif /* DEBUG_0 */
 
-PCB* processTable[NUM_TEST_PROCS]; // kernel process table
+PCB* processTable[NUM_PROCS]; // kernel process table
 PCB* currentProcess; // points to the current RUNNING process
 
 /* Master Queue */
-PriorityQueue* masterPQs[QUEUED_STATES]; // array of all queued states]\
+PriorityQueue* masterPQs[QUEUED_STATES]; // array of all queued states
 
 /* Priority queues */
 PriorityQueue readyQueue;
 PriorityQueue blockedOnMemoryQueue;
 
 /* process initialization table */
-PROC_INIT g_proc_table[NUM_TEST_PROCS];
+PROC_INIT g_proc_table[NUM_PROCS];
 extern PROC_INIT g_test_procs[NUM_TEST_PROCS];
+extern PROC_INIT nullProcess;
 
 /**
  * @brief: initialize all processes in the system
@@ -44,17 +45,24 @@ void process_init() {
 	int i;
 	U32 *sp;
   
-    /* fill out the initialization table */
+	// initialize processes
+	initializeNullProcess();
 	set_test_procs();
-	for ( i = 0; i < NUM_TEST_PROCS; i++ ) {
-		g_proc_table[i].m_pid = g_test_procs[i].m_pid;
-		g_proc_table[i].m_priority = g_test_procs[i].m_priority;
-		g_proc_table[i].m_stack_size = g_test_procs[i].m_stack_size;
-		g_proc_table[i].mpf_start_pc = g_test_procs[i].mpf_start_pc;
+	
+	g_proc_table[NULL].m_pid = nullProcess.m_pid;
+	g_proc_table[NULL].m_priority = nullProcess.m_priority;
+	g_proc_table[NULL].m_stack_size = nullProcess.m_stack_size;
+	g_proc_table[NULL].mpf_start_pc = nullProcess.mpf_start_pc;
+	
+	for ( i = 1; i < NUM_PROCS; i++ ) {
+		g_proc_table[i].m_pid = g_test_procs[i - 1].m_pid;
+		g_proc_table[i].m_priority = g_test_procs[i - 1].m_priority;
+		g_proc_table[i].m_stack_size = g_test_procs[i - 1].m_stack_size;
+		g_proc_table[i].mpf_start_pc = g_test_procs[i - 1].mpf_start_pc;
 	}
   
 	/* initialize exception stack frame (i.e. initial context) for each process */
-	for ( i = 0; i < NUM_TEST_PROCS; i++ ) {
+	for ( i = 0; i < NUM_PROCS; i++ ) {
 		int j;
 		(processTable[i])->m_PID = (g_proc_table[i]).m_pid;
 		(processTable[i])->m_Priority = (g_proc_table[i]).m_priority;
@@ -77,7 +85,7 @@ void process_init() {
 	masterPQs[1] = &blockedOnMemoryQueue;
 	
 	// all processes are currently new and ready
-	for (i = 0; i < NUM_TEST_PROCS; i++) {
+	for (i = 0; i < NUM_PROCS; i++) {
 		enqueueAtPriority(&readyQueue, processTable[i]);
 	}
 	
@@ -153,7 +161,7 @@ int k_set_process_priority(int process_id, int priority) {
 	int oldPriority;
 	int i;
 	
-	if (process_id <= 0 || process_id >= NUM_TEST_PROCS) { // cannot change priority of null process
+	if (process_id <= 0 || process_id >= NUM_PROCS) { // cannot change priority of null process
 		return RTX_ERR;
 	}
 	if (priority < HIGH || priority > LOWEST) { // cannot change to NULL_PRIORITY
@@ -186,7 +194,7 @@ int k_set_process_priority(int process_id, int priority) {
 }
 
 int k_get_process_priority(int process_id) {
-	if (process_id <= 0 || process_id >= NUM_TEST_PROCS) { // cannot get priority of null process
+	if (process_id <= 0 || process_id >= NUM_PROCS) { // cannot get priority of null process
 		return RTX_ERR;
 	}
 	return processTable[process_id]->m_Priority;

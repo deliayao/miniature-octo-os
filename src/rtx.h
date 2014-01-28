@@ -8,7 +8,7 @@
 /* ----- Definitations ----- */
 #define RTX_ERR -1
 #define NULL 0
-#define NUM_TEST_PROCS 7
+#define NUM_TEST_PROCS 6
 /* Process Priority. The bigger the number is, the lower the priority is*/
 #define HIGH    0
 #define MEDIUM  1
@@ -54,6 +54,6 @@ extern int _set_process_priority(U32 p_func, int process_id, int priority) __SVC
 
 extern int k_get_process_priority(int process_id);
 #define get_process_priority(process_id) _get_process_priority((U32)k_get_process_priority, process_id)
-extern int _get_process_priority(U32 p_func, int process_id);
+extern int _get_process_priority(U32 p_func, int process_id) __SVC_0;
 
 #endif /* !RTX_H_ */
