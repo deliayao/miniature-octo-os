@@ -23,34 +23,34 @@ PROC_INIT g_test_procs[NUM_TEST_PROCS];
 int test[7] = {0};	//test cases 0 to 6 if it goes to negative then it means TEST FAIL 
 int testMode = 1;		// to print the result only once in infinite while loop
 void set_test_procs() {
-        int i;
-        // initialization null process        
-        g_test_procs[0].m_pid = (U32) 0;
-        g_test_procs[0].m_priority = LOWEST;
-        g_test_procs[0].m_stack_size = 0x100;
-        
-        // assign id and stack size for 6 test processes
-        for( i = 1; i < NUM_TEST_PROCS; i++ ) {
-                g_test_procs[i].m_pid = (U32)(i+1);
-                g_test_procs[i].m_stack_size = 0x100;
-        }
-        
-        // assign priority of each test process
-        g_test_procs[1].m_priority = HIGH;
-        g_test_procs[2].m_priority = HIGH;
-        g_test_procs[3].m_priority = LOWEST;
-        g_test_procs[4].m_priority = LOWEST;
-        g_test_procs[5].m_priority = LOWEST;
-        g_test_procs[6].m_priority = LOWEST;
-        
+  int i;
+  // initialization null process        
+  g_test_procs[0].m_pid = (U32) 0;
+  g_test_procs[0].m_priority = LOWEST;
+  g_test_procs[0].m_stack_size = 0x100;
+  
+  // assign id and stack size for 6 test processes
+  for( i = 1; i < NUM_TEST_PROCS; i++ ) {
+          g_test_procs[i].m_pid = (U32)(i+1);
+          g_test_procs[i].m_stack_size = 0x100;
+  }
+  
+  // assign priority of each test process
+  g_test_procs[1].m_priority = HIGH;
+  g_test_procs[2].m_priority = HIGH;
+  g_test_procs[3].m_priority = LOWEST;
+  g_test_procs[4].m_priority = LOWEST;
+  g_test_procs[5].m_priority = LOWEST;
+  g_test_procs[6].m_priority = LOWEST;
+  
 
-        g_test_procs[0].mpf_start_pc = &null_process;
-        g_test_procs[1].mpf_start_pc = &proc1;
-        g_test_procs[2].mpf_start_pc = &proc2;
-        g_test_procs[3].mpf_start_pc = &proc3;
-        g_test_procs[4].mpf_start_pc = &proc4;
-        g_test_procs[5].mpf_start_pc = &proc5;
-        g_test_procs[6].mpf_start_pc = &proc6;
+  g_test_procs[0].mpf_start_pc = &null_process;
+  g_test_procs[1].mpf_start_pc = &proc1;
+  g_test_procs[2].mpf_start_pc = &proc2;
+  g_test_procs[3].mpf_start_pc = &proc3;
+  g_test_procs[4].mpf_start_pc = &proc4;
+  g_test_procs[5].mpf_start_pc = &proc5;
+  g_test_procs[6].mpf_start_pc = &proc6;
 }
 
 void null_process() {
@@ -80,10 +80,13 @@ void proc1(void) {
 	
 	while(1){
 
-		// requests 5 memory blocks
-		for(i = 0; i < 5; i++){
-			mem_ptr[i] = request_memory_block();
-		}
+		// request 5 memory blocks
+		mem_ptr[0] = request_memory_block();
+		mem_ptr[1] = request_memory_block();
+		mem_ptr[2] = request_memory_block();
+		mem_ptr[3] = request_memory_block();
+		mem_ptr[4] = request_memory_block();
+
 		
 		if(testMode == 1){
 			test[1]++;	//test1 starts
@@ -94,10 +97,13 @@ void proc1(void) {
 		}
 		
 		release_processor();
-		
-		for(i = 0; i < 5; i++){
-			release_memory_block(mem_ptr[i]);
-		}
+
+		//release 5 memory blocks
+		release_memory_block(mem_ptr[0]);
+		release_memory_block(mem_ptr[1]);
+		release_memory_block(mem_ptr[2]);
+		release_memory_block(mem_ptr[3]);
+		release_memory_block(mem_ptr[4]);
 
 		if(testMode == 1){
 			if(test[1] == 3){
@@ -123,10 +129,10 @@ void proc1(void) {
 		}
 
 		release_processor();
-		
-		for(i = 5; i < 8; i++){
-			mem_ptr[i] = request_memory_block();
-		}
+		//request 3 memory blocks
+		mem_ptr[5] = request_memory_block();
+		mem_ptr[6] = request_memory_block();
+		mem_ptr[7] = request_memory_block();
 		
 		//2 free memory blocks left
 		if(testMode == 2){
@@ -191,10 +197,10 @@ void proc2(void){
 	int i;
 	int x = 0;
     while(1){
-
-		for(i = 0; i < 3; i++){
-			mem_ptr[i] = request_memory_block();
-		}
+    	//request 3 memory blocks
+		mem_ptr[0] = request_memory_block();
+		mem_ptr[1] = request_memory_block();
+		mem_ptr[2] = request_memory_block();
 		
 		if(testMode == 1){
 			test[1]++;;	//test1 is 2
@@ -409,25 +415,25 @@ void proc4(void){
  */
 	
 void proc5(void){
- 	void* mem_ptr[3];
-	while(1) {
-		//proc5 gets blocked
-		mem_ptr[0] = request_memory_block();
-		if(testMode == 6){
-			test[6] = -1000;	//test6 FAIL
+ void* mem_ptr[3];
+		while(1) {
+			//proc5 gets blocked
+			mem_ptr[0] = request_memory_block();
+			if(testMode == 6){
+				test[6] = -1000;	//test6 FAIL
+			}
+			mem_ptr[1] = request_memory_block();
+			mem_ptr[2] = request_memory_block();
+			
+			release_processor();
+
+			release_memory_block(mem_ptr[0]); 
+			release_memory_block(mem_ptr[1]); 
+			release_memory_block(mem_ptr[2]); 
+
+			release_processor();
+
 		}
-		mem_ptr[1] = request_memory_block();
-		mem_ptr[2] = request_memory_block();
-		
-		release_processor();
-	
-		release_memory_block(mem_ptr[0]); 
-		release_memory_block(mem_ptr[1]); 
-		release_memory_block(mem_ptr[2]); 
-	
-		release_processor();
-	
-	}
 
 }
 
@@ -440,38 +446,38 @@ void proc6(void){
 	int pass;
 	int fail;
         while(1) {
-		if(testMode == 6){
-			if(test[6] == 2){
-				uart0_put_string("G006_test: test 6 OK\n\r");
-				test[6] = 0;
-			}else{
-				uart0_put_string("G006_test: test 6 FAIL\n\r");
-				test[6] = -1000;
-			}
-	
-			fail = 0;
-			for(i = 1; i < 7 ; ++i){
-				if(test[i] != 0){
-					fail++;
+			if(testMode == 6){
+				if(test[6] == 2){
+					uart0_put_string("G006_test: test 6 OK\n\r");
+					test[6] = 0;
+				}else{
+					uart0_put_string("G006_test: test 6 FAIL\n\r");
+					test[6] = -1000;
 				}
+
+				fail = 0;
+				for(i = 1; i < 7 ; ++i){
+					if(test[i] != 0){
+						fail++;
+					}
+				}
+
+				pass = 6 - fail;
+
+				uart0_put_string("G006_test: ");
+				uart0_put_char('0' + pass);
+				uart0_put_string("/6 tests OK\n\r");
+				uart0_put_char('0' + pass);
+				uart0_put_string("G006_test: ");
+				uart0_put_char('0' + fail);
+				uart0_put_string("/6 tests FAIL\n\r");
+				uart0_put_string("G006_test: END\n\r");
+				testMode = 0;	// no more testing
 			}
-	
-			pass = 6 - fail;
-	
-			uart0_put_string("G006_test: ");
-			uart0_put_char('0' + pass);
-			uart0_put_string("/6 tests OK\n\r");
-			uart0_put_char('0' + pass);
-			uart0_put_string("G006_test: ");
-			uart0_put_char('0' + fail);
-			uart0_put_string("/6 tests FAIL\n\r");
-			uart0_put_string("G006_test: END\n\r");
-			testMode = 0;	// no more testing
-		}
-	
-		//gets blocked
-		mem_ptr = request_memory_block();
-		release_processor();
+
+			//gets blocked
+			mem_ptr = request_memory_block();
+			release_processor();
 
         }
 
