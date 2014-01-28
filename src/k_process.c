@@ -161,6 +161,21 @@ int k_set_process_priority(int process_id, int priority) {
 	}
 	
 	oldPriority = processTable[process_id]->m_Priority;
+	
+	if (oldPriority == priority) {
+		// expected behaviour:
+		// if there is no change in priority, the current process is not preempted
+		// and the specified process retains its position in the priority queue
+		return RTX_OK;
+	}
+	
+	// if the current process is the specified process,
+	// change its priority and preempt it
+	if (currentProcess->m_PID == process_id) {
+		currentProcess->m_Priority = priority;
+		return k_release_processor();
+	}
+	
 	for (i = 0; i < QUEUED_STATES; i++) {
 		if (updateProcessPriority(masterPQs[i], process_id, oldPriority, priority)) {
 			k_release_processor(); // allow the processor to preempt the current process if it wants to
