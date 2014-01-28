@@ -225,17 +225,26 @@ void proc3(void){
  */
 void proc4(void){
 	int i = 0;
-	int x = 0;
 	void* mem_ptr;
   while (1) {
+		//set_process_priority(1, 0);
 				uart0_put_string("proc 4 starts~\n\r");
-		for(i =0; i < 100; i++) {
-				x++;
+		
+		//delay 1000
+		while(i < 1000){
+			i++;
 		}
 		
 		release_processor();
 		
+		if(testMode == 5){
+			test[5] = 2;
+		}
+		
 		mem_ptr = request_memory_block();
+		if(testMode == 5){
+			test[5] = -1000;
+		}
 		
 		release_processor();
 		
@@ -253,6 +262,17 @@ void proc5(void){
 	int i;
 	void* mem_ptr[8];
 	while(1) {
+		//test5: proc4 gets blocked so that the next priority proc5 runs
+		if(testMode == 5){
+			if(test[5] == 2){
+				uart0_put_string("G006_test: test 5 OK\n\r");
+				test[5] = 0;	//test5 PASS
+			}else{
+				uart0_put_string("G006_test: test 5 FAIL\n\r");
+			}
+			test[6]++;	//test6 starts
+			testMode = 6;
+		}
 		uart0_put_string("proc 5 starts~\n\r");
 		for(i = 0; i < 10; i ++) {
 			//request 10 memory blocks
@@ -261,6 +281,9 @@ void proc5(void){
 			uart0_put_string("proc 5 requesting memory\n\r");
 			uart0_put_char('0'+i);
 			uart0_put_string("\n");
+		}
+		if(testMode == 6){
+			test[6] = -1000;
 		}
 		release_processor();
 		
@@ -288,11 +311,44 @@ void proc5(void){
  *         and then yields the cpu.
  */
 void proc6(void){
-	void* mem_ptr_one;
-	void* mem_ptr_two;
+//	void* mem_ptr_one;
+//	void* mem_ptr_two;
+	int fail = 0;
+	int pass;
+	int i;
+	
 	while(1) {
+		if(testMode == 6){
+			if(test[6] != -1000){
+				uart0_put_string("G006_test: test 6 OK\n\r");
+				test[6] = 0;	//test6 PASS
+			}else{
+				uart0_put_string("G006_test: test 6 FAIL\n\r");
+			}
+			
+      for(i = 1; i < 7 ; ++i){
+        if(test[i] != 0){
+          fail++;
+        }
+      }
+			pass = 6 - fail;
+			
+			uart0_put_string("G006_test: ");
+			uart0_put_char('0' + pass);
+			uart0_put_string("/6 tests OK\n\r");
+			uart0_put_char('0' + pass);
+			uart0_put_string("G006_test: ");
+			uart0_put_char('0' + fail);
+			uart0_put_string("/6 tests FAIL\n\r");
+			uart0_put_string("G006_test: END\n\r");
+			testMode = 0;  // no more testing	
+		}
+		
+		
+		
+		
 		// request 2 memory blocks
-		uart0_put_string("proc 6 starts~\n\r");
+	/*	uart0_put_string("proc 6 starts~\n\r");
 		mem_ptr_one = request_memory_block();
 		free_mem_blk--;
 		mem_ptr_two = request_memory_block();
@@ -303,7 +359,7 @@ void proc6(void){
 		release_memory_block(mem_ptr_one);
 		free_mem_blk++;
 		
-		uart0_put_string("proc 6 requesting memory\n\r");
+		uart0_put_string("proc 6 requesting memory\n\r");*/
 		release_processor();
 	}
 }
