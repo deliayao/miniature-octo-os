@@ -54,3 +54,7 @@ int isEmptyPriorityQueue(PriorityQueue* priorityQueue) {
 	}
 	return 1;
 }
+
+int updateProcessPriority(PriorityQueue* queue, int processId, int oldPriority, int newPriority) {
+	return 0;
+}

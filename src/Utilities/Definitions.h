@@ -37,12 +37,13 @@
 #endif /* DEBUG_0 */
 
 // process states
+#define QUEUED_STATES 2
 typedef enum {
-    NEW = 0,
-    READY,
+    NEW = 0, // in same queue as ready
+    READY, // queued state
     RUNNING,
-    BLOCKED_MEM,
-    BLOCKED_IO
+    BLOCKED_MEM, // queued state
+    BLOCKED_IO 
 } ProcessState;
 
 #endif /* _DEFINITIONS_ */

@@ -36,4 +36,8 @@ void initializePriorityQueue(PriorityQueue*);
 // returns 1 if the priority queue is empty
 int isEmptyPriorityQueue(PriorityQueue*);
 
+// attempts to find process at given old priority and update it to new priority
+// returns the success/failure of the operation
+int updateProcessPriority(PriorityQueue*, int processId, int oldPriority, int newPriority);
+
 #endif /* _PRIORITY_QUEUE_ */

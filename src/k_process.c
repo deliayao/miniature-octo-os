@@ -25,6 +25,9 @@
 PCB* processTable[NUM_TEST_PROCS]; // kernel process table
 PCB* currentProcess; // points to the current RUNNING process
 
+/* Master Queue */
+PriorityQueue* masterPQs[QUEUED_STATES]; // array of all queued states]\
+
 /* Priority queues */
 PriorityQueue readyQueue;
 PriorityQueue blockedOnMemoryQueue;
@@ -69,6 +72,9 @@ void process_init() {
 	// initialize priority queues
 	initializePriorityQueue(&readyQueue);
 	initializePriorityQueue(&blockedOnMemoryQueue);
+	
+	masterPQs[0] = &readyQueue;
+	masterPQs[1] = &blockedOnMemoryQueue;
 	
 	// all processes are currently new and ready
 	for (i = 0; i < NUM_TEST_PROCS; i++) {
@@ -141,6 +147,34 @@ int process_switch() {
  */
 int k_release_processor(void) {
 	return process_switch();
+}
+
+int k_set_process_priority(int process_id, int priority) {
+	int oldPriority;
+	int i;
+	
+	if (process_id <= 0 || process_id >= NUM_TEST_PROCS) { // cannot change priority of null process
+		return RTX_ERR;
+	}
+	if (priority < HIGH || priority > LOWEST) { // cannot change to NULL_PRIORITY
+		return RTX_ERR;
+	}
+	
+	oldPriority = processTable[process_id]->m_Priority;
+	for (i = 0; i < QUEUED_STATES; i++) {
+		if (updateProcessPriority(masterPQs[i], process_id, oldPriority, priority)) {
+			k_release_processor(); // allow the processor to preempt the current process if it wants to
+			return RTX_OK;
+		}
+	}
+	return RTX_ERR;
+}
+
+int k_get_process_priority(int process_id) {
+	if (process_id <= 0 || process_id >= NUM_TEST_PROCS) { // cannot get priority of null process
+		return RTX_ERR;
+	}
+	return processTable[process_id]->m_Priority;
 }
 
 int handleMemoryRelease(void) {
