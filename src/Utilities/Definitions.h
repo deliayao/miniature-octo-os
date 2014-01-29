@@ -12,7 +12,7 @@
 
 // memory management
 #define BLOCK_SIZE 128 // bytes
-#define NUM_BLOCKS 10 // TODO: find out what the actual available number of blocks is
+#define NUM_BLOCKS 40 // TODO: find out what the actual available number of blocks is
 #define RAM_END_ADDR 0x10008000
 
 // process management

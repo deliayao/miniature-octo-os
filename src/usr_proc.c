@@ -15,7 +15,7 @@
 #endif /* DEBUG_0 */
 
 /* --Definition-- */
-#define NUM_BLOCK 10
+#define NUM_BLOCK 40
 
 /* initialization table item */
 PROC_INIT g_test_procs[NUM_TEST_PROCS];
