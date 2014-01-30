@@ -1,7 +1,7 @@
 /**
  * @file:   usr_proc.c
- * @brief:  Two user processes: proc1 and proc2
- * @author: Yiqing Huang
+ * @brief:  six user processes
+ * @author: Andrew Gillies, Delia Yao, Joohee Lee, Yiying Ho
  * @date:   2014/01/17
  * NOTE: Each process is in an infinite loop. Processes never terminate.
  */
@@ -19,10 +19,9 @@
 
 /* initialization table item */
 PROC_INIT g_test_procs[NUM_TEST_PROCS];
-/* initialization null process*/
 
-int test[7] = {0};	//only test[1] to test[6] used
-int testMode = 1;
+int test[7] = {0};	//Flag for test cases 1 to 6
+int testMode = 1;  //The testMode to indicate which test case is running
 
 void set_test_procs() {
 	int i;
@@ -50,7 +49,7 @@ void set_test_procs() {
 
 /**
 * test cases:
-* test1: proc2 should be blocked when it tried to request moew mwmoey after proc1 has all the memory
+* test1: proc2 should be blocked when it tried to request more memoey after proc1 has all the memory
 * test2: proc2 unblocked here after releasing one memory from proc1 
 * test3: proc 1 shuld have the lowest proirity 
 * test4: since proc2 is blocked then proc3 should be ready to run
@@ -73,7 +72,7 @@ void proc1(void) {
 	uart0_put_string("\n\r");
 	uart0_put_string("G006_test: START\n\r");
 	uart0_put_string("G006_test: total 6 tests\n\r");
-	while(1){
+		while(1){
 		for(i = 0; i < NUM_BLOCK; i ++) {
 			mem_ptr = request_memory_block();
 		}	
@@ -92,6 +91,7 @@ void proc1(void) {
 
 		release_memory_block(mem_ptr);
 		set_process_priority(1,3);
+		
 		release_processor();
 		
 		if(testMode == 4){
@@ -100,6 +100,11 @@ void proc1(void) {
 	}
 }
 
+
+/**
+ * @brief: a process that requests all the memory blocks 
+ *         and then yields the cpu.
+ */
 
 void proc2(void){
 	void* mem_ptr;
@@ -111,7 +116,7 @@ void proc2(void){
 
 		//request for one memory blcok
 		mem_ptr = request_memory_block();
-		
+
 		if(testMode == 1){
 			test[1] = -1000;	//test1 FAIL
 		}
@@ -133,11 +138,19 @@ void proc2(void){
 }
 
 
+/**
+ * @brief: a process that requests NUM_BLOCK - 5  memory blocks 
+ *         and then yields the cpu.
+ *         It release one memory block
+ *         and then yields the cpu.
+ */
+
 void proc3(void){
 	int array_size = NUM_BLOCK - 5;
 	void* mem_ptr;
 	int i;
 	while(1){
+		
 		//test3: proc 1 has lowest proirity
 		if(testMode == 3){
 			if(get_process_priority(1) == 3){
@@ -169,15 +182,24 @@ void proc3(void){
 		}
 
 		release_processor();
-		release_memory_block(mem_ptr);
+				release_memory_block(mem_ptr);
+
 		release_processor();
 	}
 }
 
+
+/**
+ * @brief: a process that counts from 0 to 1000 
+ *         and then yields the cpu.
+ *         It request one memory block
+ *         and then yields the cpu.
+ */
+
 void proc4(void){
 	int i = 0;
 	void* mem_ptr;
-  while (1) {
+  	while (1) {
 		
 		//delay 1000
 		while(i < 1000){
@@ -196,15 +218,22 @@ void proc4(void){
 			test[5] = -1000;
 		}
 		
-		release_processor();
-		
+		release_processor();	
 		
 	}
 }
 
+
+/**
+ * @brief: a process that requests 10 memory blocks 
+ *         and then yields the cpu.
+ *         It release 10 memory blocks
+ *         and then yields the cpu.
+ */
+
 void proc5(void){
 	int i;
-	void* mem_ptr[8];
+	void* mem_ptr[10];
 	while(1) {
 
 		//test5: proc4 gets blocked so that the next priority proc5 runs
@@ -230,7 +259,7 @@ void proc5(void){
 
 		release_processor();
 		
-		for(i = 0; i < 8; i ++) {
+		for(i = 0; i < 10; i ++) {
 			if(mem_ptr[i] != NULL) {
 				release_memory_block(mem_ptr[i]);
 			}
@@ -239,6 +268,11 @@ void proc5(void){
 		release_processor();
 	}
 }
+
+
+/**
+ * @brief: a process that only prints the result of test in the end
+ */
 
 void proc6(void){
 	int fail = 0;
