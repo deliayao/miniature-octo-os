@@ -73,7 +73,7 @@ void proc1(void) {
 	uart0_put_string("\n\r");
 	uart0_put_string("G006_test: START\n\r");
 	uart0_put_string("G006_test: total 6 tests\n\r");
-		while(1){
+	while(1){
 		for(i = 0; i < NUM_BLOCK; i ++) {
 			mem_ptr = request_memory_block();
 		}	
@@ -92,7 +92,6 @@ void proc1(void) {
 
 		release_memory_block(mem_ptr);
 		set_process_priority(1,3);
-		
 		release_processor();
 		
 		if(testMode == 4){
@@ -112,7 +111,7 @@ void proc2(void){
 
 		//request for one memory blcok
 		mem_ptr = request_memory_block();
-
+		
 		if(testMode == 1){
 			test[1] = -1000;	//test1 FAIL
 		}
@@ -139,7 +138,6 @@ void proc3(void){
 	void* mem_ptr;
 	int i;
 	while(1){
-		
 		//test3: proc 1 has lowest proirity
 		if(testMode == 3){
 			if(get_process_priority(1) == 3){
@@ -171,8 +169,7 @@ void proc3(void){
 		}
 
 		release_processor();
-				release_memory_block(mem_ptr);
-
+		release_memory_block(mem_ptr);
 		release_processor();
 	}
 }
