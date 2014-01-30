@@ -15,7 +15,7 @@
 U32 *gp_stack; /* The last allocated stack low address. 8 bytes aligned */
                /* The first stack starts at the RAM high address */
 	           /* stack grows down. Fully decremental stack */
-						 
+
 MemoryQueue heap; // heap representation
 
 /**
@@ -37,9 +37,9 @@ MemoryQueue heap; // heap representation
           |        PCB pointers       |
           |---------------------------|<--- gp_pcbs
           |        Padding            |
-          |---------------------------|  
+          |---------------------------|
           |Image$$RW_IRAM1$$ZI$$Limit |
-          |...........................|          
+          |...........................|
           |       RTX  Image          |
           |                           |
 0x10000000+---------------------------+ Low Address
@@ -49,10 +49,10 @@ MemoryQueue heap; // heap representation
 void memory_init(void) {
 	U8 *p_end = (U8 *)&Image$$RW_IRAM1$$ZI$$Limit;
 	int i;
-  
+
 	// 4 bytes padding
 	p_end += 4;
-  
+
 	for ( i = 0; i < NUM_PROCS; i++ ) {
 		processTable[i] = (PCB *)p_end;
 		p_end += sizeof(PCB);
@@ -61,9 +61,9 @@ void memory_init(void) {
   // prepare for alloc_stack() to allocate memory for stacks
 	gp_stack = (U32 *)RAM_END_ADDR;
 	if ((U32)gp_stack & 0x04) { /* 8 bytes alignment */
-		--gp_stack; 
+		--gp_stack;
 	}
-	
+
 	// initialize heap
   initializeMemoryQueue(&heap, (Node *)p_end);
 }
@@ -78,28 +78,28 @@ void memory_init(void) {
 U32 *alloc_stack(U32 size_b) {
 	U32 *sp;
 	sp = gp_stack; /* gp_stack is always 8 bytes aligned */
-	
+
 	/* update gp_stack */
 	gp_stack = (U32 *)((U8 *)sp - size_b);
-	
+
 	/* 8 bytes alignment adjustment to exception stack frame */
 	if ((U32)gp_stack & 0x04) {
-		--gp_stack; 
+		--gp_stack;
 	}
 	return sp;
 }
 
 void *k_request_memory_block(void) {
-#ifdef DEBUG_0 	
+#ifdef DEBUG_0
 	printf("k_request_memory_block: entering...\n");
 #endif /* ! DEBUG_0 */
-	
+
 	while (isEmptyMemoryQueue(&heap)) {
 		currentProcess->m_State = BLOCKED_MEM;
 		k_release_processor();
 	}
-	
-	return (void*)((U32)dequeueNode(&heap) + sizeof(Node));
+
+	return (void*)((U32)dequeueNode(&heap) + sizeof(Node)); // return the next node offset by the size of the Node
 }
 
 int k_release_memory_block(void *p_mem_blk) {
@@ -110,8 +110,8 @@ int k_release_memory_block(void *p_mem_blk) {
 #endif /* ! DEBUG_0 */
 
 	if (isValidNode(&heap, memoryToFree)) {
-			enqueueNode(&heap, memoryToFree);
+			enqueueNode(&heap, memoryToFree); //if valid add back to heap
 			return handleMemoryRelease();
-	} 
+	}
 	return RTX_ERR;
 }
