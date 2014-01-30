@@ -1,7 +1,6 @@
 /**
  * @file:   k_process.h
  * @brief:  process management header file
- * NOTE: Assuming there are only two user processes in the system
  */
 
 #ifndef K_PROCESS_H_

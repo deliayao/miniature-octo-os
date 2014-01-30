@@ -1,13 +1,6 @@
 /**
  * @file:   k_process.c
  * @brief:  process management C file
- * NOTE: The example code shows one way of implementing context switching.
- *       The code only has minimal sanity check. There is no stack overflow check.
- *       The implementation assumes only two simple user processes and NO HARDWARE INTERRUPTS.
- *       The purpose is to show how context switch could be done under stated assumptions.
- *       These assumptions are not true in the required RTX Project!!!
- *       If you decide to use this piece of code, you need to understand the assumptions and
- *       the limitations.
  */
 
 #include <LPC17xx.h>
@@ -27,6 +20,8 @@ PCB* currentProcess; // points to the current RUNNING process
 
 /* Master Queue */
 PriorityQueue* masterPQs[QUEUED_STATES]; // array of all queued states
+                                         // this array is iterated when the priority of a process is changed
+                                         // and we must find the process to remove and re-enqueue it
 
 /* Priority queues */
 PriorityQueue readyQueue;
@@ -39,7 +34,6 @@ extern PROC_INIT nullProcess;
 
 /**
  * @brief: initialize all processes in the system
- * NOTE: We assume there are only two user processes in the system in this example.
  */
 void process_init() {
 	int i;
@@ -96,7 +90,6 @@ void process_init() {
 /*@brief: scheduler, pick the pid of the next to run process
  *@return: PCB pointer of the next to run process
  */
-
 PCB *scheduler(void) {
 	return dequeueHighest(&readyQueue);
 }
@@ -141,6 +134,7 @@ int process_switch() {
 
 	return RTX_OK;
 }
+
 /**
  * @brief release_processor().
  * @return RTX_ERR on error and zero on success
@@ -195,7 +189,7 @@ int k_get_process_priority(int process_id) {
 
 int handleMemoryRelease(void) {
 	if (!isEmptyPriorityQueue(&blockedOnMemoryQueue)) {
-		// clear blocked on memory queue, move process' to ready
+		// clear blocked on memory queue, move processes to ready
 		PCB* process = dequeueHighest(&blockedOnMemoryQueue);
 		while (process != NULL) {
 			process->m_State = READY;

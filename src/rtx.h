@@ -1,14 +1,16 @@
-/* @brief: rtx.h User API prototype, this is only an example
- * @author: Yiqing Huang
- * @date: 2014/01/17
+/**
+ * @file:   rtx.h
+ * @brief: 	User API
  */
+
 #ifndef RTX_H_
 #define RTX_H_
 
-/* ----- Definitations ----- */
+/* ----- Definitions ----- */
 #define RTX_ERR -1
 #define NULL 0
 #define NUM_TEST_PROCS 6
+
 /* Process Priority. The bigger the number is, the lower the priority is*/
 #define HIGH    0
 #define MEDIUM  1
