@@ -135,7 +135,7 @@ int process_switch() {
 			__set_MSP((U32) currentProcess->m_ProcessSP); // switch to the new processes's stack
 			
 			if (currentProcess->m_State == NEW) {
-				__rte(); // pop exception stack frame from the stack for a new processes
+				__rte(); // pop exception stack frame from the stack for new processes
 			}
 			currentProcess->m_State = RUNNING;
 		} else { // if the scheduler chose a process that isn't READY or NEW, something broke

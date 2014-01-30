@@ -58,12 +58,7 @@ void memory_init(void) {
 		p_end += sizeof(PCB);
 	}
 
-#ifdef DEBUG_0
-	printf("gp_pcbs[0] = 0x%x \n", processTable[0]);
-	printf("gp_pcbs[1] = 0x%x \n", processTable[1]);
-#endif
-
-    // prepare for alloc_stack() to allocate memory for stacks
+  // prepare for alloc_stack() to allocate memory for stacks
 	gp_stack = (U32 *)RAM_END_ADDR;
 	if ((U32)gp_stack & 0x04) { /* 8 bytes alignment */
 		--gp_stack; 
@@ -71,15 +66,6 @@ void memory_init(void) {
 	
 	// initialize heap
   initializeMemoryQueue(&heap, (Node *)p_end);
-	
-#ifdef DEBUG_0
-	printf("IMage dollar sign thing RAM1: 0x%x \n", &Image$$RW_IRAM1$$ZI$$Limit);
-	printf("heap initialized, address: 0x%x \n", &heap);
-	printf("siZEOF noDe: 0x%x \n", sizeof(Node));
-
-	printf("Size of node pointer: %d \n", sizeof(Node*));
-
-#endif
 }
 
 /**

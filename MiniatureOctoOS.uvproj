@@ -348,7 +348,7 @@
             <uSurpInc>0</uSurpInc>
             <VariousControls>
               <MiscControls></MiscControls>
-              <Define>DEBUG_0</Define>
+              <Define></Define>
               <Undefine></Undefine>
               <IncludePath></IncludePath>
             </VariousControls>
@@ -490,6 +490,16 @@
               <FileName>usr_proc.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\src\usr_proc.h</FilePath>
+            </File>
+            <File>
+              <FileName>NullProcess.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\NullProcess.c</FilePath>
+            </File>
+            <File>
+              <FileName>NullProcess.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\src\NullProcess.h</FilePath>
             </File>
           </Files>
         </Group>
@@ -1029,6 +1039,16 @@
               <FileName>usr_proc.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\src\usr_proc.h</FilePath>
+            </File>
+            <File>
+              <FileName>NullProcess.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\NullProcess.c</FilePath>
+            </File>
+            <File>
+              <FileName>NullProcess.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\src\NullProcess.h</FilePath>
             </File>
           </Files>
         </Group>
