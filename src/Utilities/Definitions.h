@@ -47,4 +47,10 @@ typedef enum {
     BLOCKED_IO 
 } ProcessState;
 
+// message types
+typedef enum {
+    DEFAULT = 0,
+    KCD_REG
+} MessageType;
+
 #endif /* _DEFINITIONS_ */
