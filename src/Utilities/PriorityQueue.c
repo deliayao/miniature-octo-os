@@ -60,7 +60,8 @@ int updateProcessPriority(PriorityQueue* queue, int processId, int oldPriority, 
 	
 	if (process == NULL) {
 		return 0; // error
+	} else {
+		process->m_Priority = newPriority;
+		return enqueue(getQueueAtPriority(queue, newPriority), process);
 	}
-	
-	return enqueue(getQueueAtPriority(queue, newPriority), process);
 }

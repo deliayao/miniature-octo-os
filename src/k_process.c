@@ -191,10 +191,9 @@ int handleMemoryRelease(void) {
 	if (!isEmptyPriorityQueue(&blockedOnMemoryQueue)) {
 		// clear blocked on memory queue, move processes to ready
 		PCB* process = dequeueHighest(&blockedOnMemoryQueue);
-		while (process != NULL) {
+		if (process != NULL) {
 			process->m_State = READY;
 			enqueueAtPriority(&readyQueue, process);
-			process = dequeueHighest(&blockedOnMemoryQueue);
 		}
 		return k_release_processor();
 	}
