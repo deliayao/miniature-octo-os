@@ -18,6 +18,24 @@
 #define LOWEST  3
 #define NULL_PRIORITY 4
 
+// Process IDs
+#define NULL_PROCESS 					0
+#define PROCESS_1   					1
+#define PROCESS_2   					2
+#define PROCESS_3   					3
+#define PROCESS_4   					4
+#define PROCESS_5   					5
+#define PROCESS_6   					6
+#define PROCESS_A    					7
+#define PROCESS_B    					8
+#define PROCESS_C    					9
+#define PROCESS_SET_PRIORITY 	10
+#define CLOCK_PROCESS        	11
+#define KCD_PROCESS          	12
+#define CRT_PROCESS          	13
+#define TIMER_IPROCESS  			14
+#define UART_IPROCESS   			15
+
 /* ----- Types ----- */
 typedef unsigned int U32;
 
@@ -41,6 +59,7 @@ extern int k_release_processor(void);
 #define release_processor() _release_processor((U32)k_release_processor)
 extern int __SVC_0 _release_processor(U32 p_func);
 
+// Memory Management
 extern void *k_request_memory_block(void);
 #define request_memory_block() _request_memory_block((U32)k_request_memory_block)
 extern void *_request_memory_block(U32 p_func) __SVC_0;
@@ -50,6 +69,7 @@ extern int k_release_memory_block(void *);
 #define release_memory_block(p_mem_blk) _release_memory_block((U32)k_release_memory_block, p_mem_blk)
 extern int _release_memory_block(U32 p_func, void *p_mem_blk) __SVC_0;
 
+// Process Management
 extern int k_set_process_priority(int process_id, int priority);
 #define set_process_priority(process_id, priority) _set_process_priority((U32)k_set_process_priority, process_id, priority)
 extern int _set_process_priority(U32 p_func, int process_id, int priority) __SVC_0;
@@ -58,6 +78,7 @@ extern int k_get_process_priority(int process_id);
 #define get_process_priority(process_id) _get_process_priority((U32)k_get_process_priority, process_id)
 extern int _get_process_priority(U32 p_func, int process_id) __SVC_0;
 
+// IPC Management
 extern void *k_receive_message(int *sender_id);
 #define receive_message(sender_id) _receive_message((U32)k_receive_message, sender_id)
 extern int _receive_message(U32 p_func, int *sender_id) __SVC_0;
