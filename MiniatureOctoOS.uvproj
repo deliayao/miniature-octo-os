@@ -471,6 +471,26 @@
               <FileType>5</FileType>
               <FilePath>.\src\Polling\uart_polling.h</FilePath>
             </File>
+            <File>
+              <FileName>PostOffice.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\PostOffice.c</FilePath>
+            </File>
+            <File>
+              <FileName>PostOffice.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\src\PostOffice.h</FilePath>
+            </File>
+            <File>
+              <FileName>Timer.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\Timer.c</FilePath>
+            </File>
+            <File>
+              <FileName>Timer.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\src\Timer.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -550,6 +570,26 @@
               <FileName>Definitions.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\src\Utilities\Definitions.h</FilePath>
+            </File>
+            <File>
+              <FileName>MessageQueue.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\Utilities\MessageQueue.c</FilePath>
+            </File>
+            <File>
+              <FileName>MessageQueue.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\src\Utilities\MessageQueue.h</FilePath>
+            </File>
+            <File>
+              <FileName>Threading.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\Utilities\Threading.c</FilePath>
+            </File>
+            <File>
+              <FileName>Threading.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\src\Utilities\Threading.h</FilePath>
             </File>
           </Files>
         </Group>
@@ -1020,6 +1060,26 @@
               <FileType>5</FileType>
               <FilePath>.\src\Polling\uart_polling.h</FilePath>
             </File>
+            <File>
+              <FileName>PostOffice.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\PostOffice.c</FilePath>
+            </File>
+            <File>
+              <FileName>PostOffice.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\src\PostOffice.h</FilePath>
+            </File>
+            <File>
+              <FileName>Timer.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\Timer.c</FilePath>
+            </File>
+            <File>
+              <FileName>Timer.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\src\Timer.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -1099,6 +1159,26 @@
               <FileName>Definitions.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\src\Utilities\Definitions.h</FilePath>
+            </File>
+            <File>
+              <FileName>MessageQueue.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\Utilities\MessageQueue.c</FilePath>
+            </File>
+            <File>
+              <FileName>MessageQueue.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\src\Utilities\MessageQueue.h</FilePath>
+            </File>
+            <File>
+              <FileName>Threading.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\Utilities\Threading.c</FilePath>
+            </File>
+            <File>
+              <FileName>Threading.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\src\Utilities\Threading.h</FilePath>
             </File>
           </Files>
         </Group>

@@ -9,6 +9,7 @@
 #include "Utilities/Definitions.h"
 #include "Utilities/Types.h"
 #include "Utilities/k_rtx.h"
+#include "k_process.h"
 
 /* ----- Variables ----- */
 /* This symbol is defined in the scatter file (see RVCT Linker User Guide) */  

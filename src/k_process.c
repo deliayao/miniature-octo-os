@@ -7,7 +7,7 @@
 #include <system_LPC17xx.h>
 
 #include "Polling/uart_polling.h"
-#include "Utilities/PriorityQueue.h"
+#include "Utilities/MessageQueue.h"
 
 #include "k_process.h"
 
@@ -61,6 +61,7 @@ void process_init() {
 		(processTable[i])->m_PID = (g_proc_table[i]).m_pid;
 		(processTable[i])->m_Priority = (g_proc_table[i]).m_priority;
 		(processTable[i])->m_State = NEW;
+		initializeMessageQueue(&((processTable[i])->m_Mailbox));
 
 		sp = alloc_stack((g_proc_table[i]).m_stack_size);
 		*(--sp)  = INITIAL_xPSR;      // user process initial xPSR

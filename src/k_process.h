@@ -8,6 +8,7 @@
 
 #include "Utilities/Types.h"
 #include "Utilities/k_rtx.h"
+#include "Utilities/PriorityQueue.h"
 
 
 /* ----- Functions ----- */

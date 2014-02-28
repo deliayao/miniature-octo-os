@@ -7,6 +7,19 @@
 #define _PROCESS_QUEUE_
 
 #include "Types.h"
+#include "MessageQueue.h"
+
+// Process Control Block data structure
+// these act as the nodes in a process queue
+typedef struct PCB {
+    struct PCB* m_Next; // pointer to the next process in the queue
+
+    U32 m_PID; // process id
+    U32* m_ProcessSP; // pointer to top of process stack
+    int m_Priority; // process priority
+    ProcessState m_State; // current state of the process
+	  struct MessageQueue m_Mailbox; // process mailbox
+} PCB;
 
 typedef struct ProcessQueue {
     PCB* m_First;
