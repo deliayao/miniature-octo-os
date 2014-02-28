@@ -6,15 +6,19 @@
 #include "kcd_process.h"
 
 #ifdef DEBUG_0
-#include "printf.h"
-char* uart_msg = null;
+#include "printf.h
+void* uart_msg = null;
 // initialize the table
+
+
+
 
 void kcdMain(void) {
 	// void pointer pointing at the message body
-	uart_msg = (char*) receive_message(UART_IPROCESS);
+	uart_msg = receive_message(UART_IPROCESS);
 	
 	//check the type (Command/ Regular string)
+
 	
 	// if it is command, then add to the table
 	
@@ -24,10 +28,12 @@ void kcdMain(void) {
 	
 		// if it is not the command then do nothing
 	
+	restUARTmsg();
+	
 }
 
-void resetUARTmsg(void){
+void resetUARTmsg(){
 	uart_msg = null;
 }
 
-// table contense two thing, one is the command, and one is which process register the command
+// table contense two things, one is the command, and one is which process register the command
