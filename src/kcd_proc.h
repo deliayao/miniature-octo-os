@@ -12,15 +12,9 @@
 typedef struct register_table
 {
    int register_pid;
-   int command_type;
+   char mtext;
    struct register_table *next;
 }REGISTER_TABLE;
-
-/*REGISTER_TABLE *commandList;
-REGISTER_TABLE *current_node;
-commandList = (REGISTER_TABLE*)malloc(sizeof(REGISTER_TABLE));
-current_node = list;
-*/
 
 /* ----- Variables -----  
 extern unsigned int Image$$RW_IRAM1$$ZI$$Limit; 
@@ -37,7 +31,10 @@ int k_release_memory_block(void *);
 */
 
 void kcdMain(void);
+void addItems(char mtext, int register_pid);
+void initTable();
 void resetUARTmsg();
+
 
 
 #endif /* ! KCD_PROCESS_H_ */
