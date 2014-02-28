@@ -16,11 +16,11 @@ typedef struct register_table
    struct register_table *next;
 }REGISTER_TABLE;
 
-REGISTER_TABLE *commandList;
+/*REGISTER_TABLE *commandList;
 REGISTER_TABLE *current_node;
 commandList = (REGISTER_TABLE*)malloc(sizeof(REGISTER_TABLE));
 current_node = list;
-
+*/
 
 /* ----- Variables -----  
 extern unsigned int Image$$RW_IRAM1$$ZI$$Limit; 
