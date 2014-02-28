@@ -8,6 +8,15 @@
 
 #include "rtx.h"
 
+/* initialization table item */
+typedef struct register_table
+{
+   int register_pid;
+   int command_type;
+   struct register_table *next;
+}REGISTER_TABLE;
+
+
 /* ----- Variables -----  
 extern unsigned int Image$$RW_IRAM1$$ZI$$Limit; 
 
