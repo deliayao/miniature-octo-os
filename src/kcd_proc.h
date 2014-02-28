@@ -23,7 +23,7 @@ int k_release_memory_block(void *);
 */
 
 void kcdMain(void);
-void resetUARTmsg(void);
+void resetUARTmsg();
 
 
 #endif /* ! KCD_PROCESS_H_ */
