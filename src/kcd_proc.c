@@ -6,10 +6,9 @@
 #include "kcd_process.h"
 
 #ifdef DEBUG_0
-#include "printf.h
+#include "printf.h"
 void* uart_msg = null;
 // initialize the table
-
 
 
 
@@ -17,7 +16,12 @@ void kcdMain(void) {
 	// void pointer pointing at the message body
 	uart_msg = receive_message(UART_IPROCESS);
 	
-	//check the type (Command/ Regular string)
+	if(uart_msg != null) {
+		//check the type (Command/ Regular string)
+		
+	}
+	
+	
 
 	
 	// if it is command, then add to the table
@@ -32,8 +36,22 @@ void kcdMain(void) {
 	
 }
 
+void addItems(char mtext, int register_pid) {
+	
+}
+
+// table contense two things, one is the command, and one is which process register the command
+void initTable() {
+	/*REGISTER_TABLE *commandList;
+REGISTER_TABLE *current_node;
+commandList = (REGISTER_TABLE*)malloc(sizeof(REGISTER_TABLE));
+current_node = list;
+*/
+}
+
 void resetUARTmsg(){
 	uart_msg = null;
 }
 
-// table contense two things, one is the command, and one is which process register the command
+
+
