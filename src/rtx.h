@@ -98,4 +98,8 @@ extern int k_delayed_send(int process_id, void *message_envelope, int delay);
 #define delayed_send(process_id, message_envelope, delay) _delayed_send((U32)k_delayed_send, process_id, message_envelope, delay)
 extern int _delayed_send(U32 p_func, int process_id, void *message_envelope, int delay) __SVC_0;
 
+extern int k_send_message(int process_id, void *message_envelope);
+#define send_message(process_id, message_envelope) _send_message((U32)k_send_message, process_id, message_envelope)
+extern int _send_message(U32 p_func, int process_id, void *message_envelope) __SVC_0;
+
 #endif /* !RTX_H_ */

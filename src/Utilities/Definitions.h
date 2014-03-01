@@ -19,9 +19,29 @@
 #define INITIAL_xPSR 0x01000000 // user process initial xPSR value
 #define NUM_PRIORITIES 5
 
-#define NULL 0
-#define NUM_PROCS 7
+#define NUM_PROCS 8
 #define NUM_TEST_PROCS 6
+#define NUM_IPROCS 1
+
+#define NULL 0
+
+// process IDs
+#define NULL_PROCESS 					0
+#define PROCESS_1   					1
+#define PROCESS_2   					2
+#define PROCESS_3   					3
+#define PROCESS_4   					4
+#define PROCESS_5   					5
+#define PROCESS_6   					6
+#define PROCESS_A    					7
+#define PROCESS_B    					8
+#define PROCESS_C    					9
+#define PROCESS_SET_PRIORITY 	10
+#define CLOCK_PROCESS        	11
+#define KCD_PROCESS          	12
+#define CRT_PROCESS          	13
+#define TIMER_IPROCESS  			7
+#define UART_IPROCESS   			15
 
 // process priority
 // the higher the number, the lower the priority

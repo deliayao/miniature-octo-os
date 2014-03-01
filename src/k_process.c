@@ -31,6 +31,7 @@ PriorityQueue blockedOnMemoryQueue;
 PROC_INIT g_proc_table[NUM_PROCS];
 extern PROC_INIT g_test_procs[NUM_TEST_PROCS];
 extern PROC_INIT nullProcess;
+extern PROC_INIT timerProcess;
 
 /**
  * @brief: initialize all processes in the system
@@ -41,12 +42,18 @@ void process_init() {
 
 	// initialize processes
 	initializeNullProcess();
+    initializeTimerProcess();
 	set_test_procs();
 
-	g_proc_table[NULL].m_pid = nullProcess.m_pid;
-	g_proc_table[NULL].m_priority = nullProcess.m_priority;
-	g_proc_table[NULL].m_stack_size = nullProcess.m_stack_size;
-	g_proc_table[NULL].mpf_start_pc = nullProcess.mpf_start_pc;
+	g_proc_table[NULL_PROCESS].m_pid = nullProcess.m_pid;
+	g_proc_table[NULL_PROCESS].m_priority = nullProcess.m_priority;
+	g_proc_table[NULL_PROCESS].m_stack_size = nullProcess.m_stack_size;
+	g_proc_table[NULL_PROCESS].mpf_start_pc = nullProcess.mpf_start_pc;
+    
+    g_proc_table[TIMER_IPROCESS].m_pid = timerProcess.m_pid;
+	g_proc_table[TIMER_IPROCESS].m_priority = timerProcess.m_priority;
+	g_proc_table[TIMER_IPROCESS].m_stack_size = timerProcess.m_stack_size;
+	g_proc_table[TIMER_IPROCESS].mpf_start_pc = timerProcess.mpf_start_pc;
 
 	for ( i = 1; i < NUM_PROCS; i++ ) {
 		g_proc_table[i].m_pid = g_test_procs[i - 1].m_pid;
@@ -80,7 +87,7 @@ void process_init() {
 	masterPQs[1] = &blockedOnMemoryQueue;
 
 	// all processes are currently new and ready
-	for (i = 0; i < NUM_PROCS; i++) {
+	for (i = 0; i < NUM_PROCS - NUM_IPROCS; i++) {
 		enqueueAtPriority(&readyQueue, processTable[i]);
 	}
 
@@ -188,6 +195,15 @@ int k_get_process_priority(int process_id) {
 	return processTable[process_id]->m_Priority;
 }
 
+int k_send_message(int process_id, void *message_envelope) {
+    U32 messageAddress = (U32)message_envelope - sizeof(Envelope);
+    return enqueueEnvelope(&(processTable[process_id]->m_Mailbox), (Envelope*)messageAddress);
+}
+
+int deliverMessage(int destinationProcess, Envelope* envelope) {
+    return enqueueEnvelope(&(processTable[destinationProcess]->m_Mailbox), envelope);
+}
+
 int handleMemoryRelease(void) {
 	if (!isEmptyPriorityQueue(&blockedOnMemoryQueue)) {
 		// clear blocked on memory queue, move processes to ready
@@ -199,4 +215,10 @@ int handleMemoryRelease(void) {
 		return k_release_processor();
 	}
 	return RTX_OK;
+}
+
+Envelope* nonBlockingReceiveMessage(int receiverID, int *senderIDOutput) {
+    Envelope* message = dequeueEnvelope(&(processTable[receiverID]->m_Mailbox));
+    *senderIDOutput = (message == NULL) ? -1 : message->m_SenderPID;
+    return message;
 }
