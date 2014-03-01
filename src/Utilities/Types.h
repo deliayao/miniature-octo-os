@@ -20,11 +20,10 @@ typedef struct Node {
 // message envelope data structure for message queue
 typedef struct Envelope {
     struct Envelope* m_Next; // pointer to the next envelope in the queue
-
+    
     int m_SenderPID; // ID of source process
     int m_DestinationPID; // ID of destination process
-	  int m_Expiry; // message will be sent after this time is reached
-    MessageType m_Type; // message type
+	int m_Expiry; // message will be sent after this time is reached
 } Envelope;
 
 #endif /* _TYPES_ */

@@ -53,7 +53,7 @@ void initializeMemoryQueue(MemoryQueue* queue, Node* first) {
 
     // partition heap memory into a linked list of equal sized nodes
     for (i = 0; i < (NUM_BLOCKS - 1); i++) {
-		nextNodeAddress = (U32)currentNode + sizeof(Node) + BLOCK_SIZE;
+		nextNodeAddress = (U32)currentNode + sizeof(Node) + sizeof(Envelope) + BLOCK_SIZE;
 		nextNode = (Node*)nextNodeAddress;
         currentNode->m_Next = nextNode;
         currentNode = nextNode;
@@ -79,9 +79,9 @@ int isValidNode(MemoryQueue* queue, Node* node) {
 
 
     // check that nodeAddress is between the first and last node of the queue
-    if (nodeAddress < heapBeginAddress || nodeAddress > heapBeginAddress + (NUM_BLOCKS - 1) * (sizeof(Node) + BLOCK_SIZE)) {
+    if (nodeAddress < heapBeginAddress || nodeAddress > heapBeginAddress + (NUM_BLOCKS - 1) * (sizeof(Node) + sizeof(Envelope) + BLOCK_SIZE)) {
         return 0;
-    } else if ((nodeAddress - heapBeginAddress) % (sizeof(Node) + BLOCK_SIZE) != 0) { // check that nodeAddress occurs at some integer multiple of sizeof(Node) + BLOCK_SIZE
+    } else if ((nodeAddress - heapBeginAddress) % (sizeof(Node) + sizeof(Envelope) + BLOCK_SIZE) != 0) { // check that nodeAddress occurs at some integer multiple of sizeof(Node) + BLOCK_SIZE
 		    return 0;
 		}
 

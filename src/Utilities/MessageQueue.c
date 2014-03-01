@@ -34,7 +34,7 @@ int enqueueEnvelope(MessageQueue* queue, Envelope* envelope) {
 
     // this function doesn't actually do any checks right now,
     // so the operation always succeeds
-    return 1; 
+    return RTX_OK; 
 }
 
 void initializeMessageQueue(MessageQueue* queue) {
@@ -52,7 +52,7 @@ int insertEnvelope(MessageQueue* queue, Envelope* envelope) {
         // insert envelope at the front
         envelope->m_Next = queue->m_First;
         queue->m_First = envelope;
-        return 1;
+        return RTX_OK;
     }
     
 	currentEnvelope = queue->m_First;
@@ -65,7 +65,7 @@ int insertEnvelope(MessageQueue* queue, Envelope* envelope) {
 
     currentEnvelope->m_Next = envelope;
     envelope->m_Next = nextEnvelope;
-    return 1;
+    return RTX_OK;
 }
 
 int isEmptyMessageQueue(MessageQueue* queue) {

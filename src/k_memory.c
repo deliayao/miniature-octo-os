@@ -98,11 +98,11 @@ void *k_request_memory_block(void) {
 		k_release_processor();
 	}
 
-	return (void*)((U32)dequeueNode(&heap) + sizeof(Node)); // return the next node offset by the size of the Node
+	return (void*)((U32)dequeueNode(&heap) + sizeof(Node) + sizeof(Envelope)); // return the next node offset by the size of the Node
 }
 
 int k_release_memory_block(void *p_mem_blk) {
-    Node* memoryToFree = (Node *)((U32)p_mem_blk - sizeof(Node)); // if the node is valid, it will occur at this address
+    Node* memoryToFree = (Node *)((U32)p_mem_blk - sizeof(Node) - sizeof(Envelope)); // if the node is valid, it will occur at this address
 
 #ifdef DEBUG_0
    printf("k_release_memory_block: releasing block @ 0x%x\n", p_mem_blk);

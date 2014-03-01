@@ -31,6 +31,10 @@
 #define LOWEST  3
 #define NULL_PRIORITY 4
 
+// IPC
+#define DEFAULT 0
+#define KCD_REG 1
+
 #ifdef DEBUG_0
 #define USR_SZ_STACK 0x200         /* user proc stack size 512B   */
 #else
@@ -46,11 +50,5 @@ typedef enum {
     BLOCKED_MEM, // queued state
     BLOCKED_IO 
 } ProcessState;
-
-// message types
-typedef enum {
-    DEFAULT = 0,
-    KCD_REG
-} MessageType;
 
 #endif /* _DEFINITIONS_ */
