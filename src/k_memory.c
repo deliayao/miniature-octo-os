@@ -4,6 +4,8 @@
  */
 
 #include "Utilities/MemoryQueue.h"
+#include "k_process.h"
+
 #include "k_memory.h"
 
 #ifdef DEBUG_0

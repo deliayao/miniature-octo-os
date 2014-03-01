@@ -23,6 +23,8 @@ PROC_INIT g_test_procs[NUM_TEST_PROCS];
 int test[7] = {0};	//Flag for test cases 1 to 6
 int testMode = 1;  //The testMode to indicate which test case is running
 
+extern volatile uint32_t g_timer_count;
+
 void set_test_procs() {
 	int i;
 	
@@ -32,7 +34,7 @@ void set_test_procs() {
 	}
 
 	g_test_procs[0].m_priority = HIGH;
-	g_test_procs[1].m_priority = HIGH;
+	g_test_procs[1].m_priority = MEDIUM;
 	g_test_procs[2].m_priority = MEDIUM;
 	g_test_procs[3].m_priority = MEDIUM;
 	g_test_procs[4].m_priority = LOW;
@@ -66,38 +68,15 @@ void set_test_procs() {
 
 
 void proc1(void) {
-	int i;
-	void* mem_ptr;
-	
-	uart0_put_string("\n\r");
-	uart0_put_string("G006_test: START\n\r");
-	uart0_put_string("G006_test: total 6 tests\n\r");
-		while(1){
-		for(i = 0; i < NUM_BLOCK; i ++) {
-			mem_ptr = request_memory_block();
-		}	
-		release_processor();
-
-		if(testMode == 1){
-			if(test[1] != -1000 ){
-				uart0_put_string("G006_test: test 1 OK\n\r");
-				test[1] = 0;	//test1 PASS
-			}else{
-				uart0_put_string("G006_test: test 1 FAIL\n\r");
-			}
-			test[2]++;	//test2 starts and it increases to 1
-			testMode = 2;
-		}
-
-		release_memory_block(mem_ptr);
-		set_process_priority(1,3);
-		
-		release_processor();
-		
-		if(testMode == 4){
-			test[4] = -1000;	//test4 FAIL
-		}
-	}
+	volatile uint8_t sec = 0;
+				while (1) {
+					/* g_timer_count gets updated every 1ms */
+					if (g_timer_count == 1000) { 
+						uart0_put_char('0'+ sec);
+						sec = (++sec)%10;
+						g_timer_count = 0; /* reset the counter */
+					}     
+				}
 }
 
 

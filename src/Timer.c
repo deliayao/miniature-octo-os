@@ -7,7 +7,7 @@
  */
 
 #include <LPC17xx.h>
-#include "timer.h"
+#include "Timer.h"
 
 #define BIT(X) (1<<X)
 

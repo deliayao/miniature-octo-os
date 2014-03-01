@@ -6,7 +6,6 @@
 #ifndef _MESSAGE_QUEUE_
 #define _MESSAGE_QUEUE_
 
-#include "Definitions.h"
 #include "Types.h"
 
 typedef struct MessageQueue {
@@ -24,6 +23,11 @@ int enqueueEnvelope(MessageQueue*, Envelope*);
 
 // initializes the queue
 void initializeMessageQueue(MessageQueue*);
+
+// inserts the envelope at the correct position
+// (queue is sorted by ascending expiry time)
+// returns the success of the operation
+int insertEnvelope(MessageQueue*, Envelope*);
 
 // returns 1 if the queue is empty
 int isEmptyMessageQueue(MessageQueue*);

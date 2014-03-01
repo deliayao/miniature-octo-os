@@ -23,6 +23,7 @@ typedef struct Envelope {
 
     int m_SenderPID; // ID of source process
     int m_DestinationPID; // ID of destination process
+	  int m_Expiry; // message will be sent after this time is reached
     MessageType m_Type; // message type
 } Envelope;
 

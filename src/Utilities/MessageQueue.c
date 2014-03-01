@@ -42,6 +42,32 @@ void initializeMessageQueue(MessageQueue* queue) {
     queue->m_Last = NULL;
 }
 
+int insertEnvelope(MessageQueue* queue, Envelope* envelope) {
+    Envelope* currentEnvelope;
+    Envelope* nextEnvelope;
+    
+    if (isEmptyMessageQueue(queue) || envelope->m_Expiry >= queue->m_Last->m_Expiry) {
+        return enqueueEnvelope(queue, envelope);
+    } else if (envelope->m_Expiry < queue->m_First->m_Expiry) {
+        // insert envelope at the front
+        envelope->m_Next = queue->m_First;
+        queue->m_First = envelope;
+        return 1;
+    }
+    
+	currentEnvelope = queue->m_First;
+    nextEnvelope = currentEnvelope->m_Next;
+	
+    while (currentEnvelope != queue->m_Last && envelope->m_Expiry >= nextEnvelope->m_Expiry) {
+        currentEnvelope = nextEnvelope;
+        nextEnvelope = currentEnvelope->m_Next;
+    }
+
+    currentEnvelope->m_Next = envelope;
+    envelope->m_Next = nextEnvelope;
+    return 1;
+}
+
 int isEmptyMessageQueue(MessageQueue* queue) {
-	return queue->m_First == NULL;
+    return queue->m_First == NULL;
 }

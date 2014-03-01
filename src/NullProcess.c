@@ -1,5 +1,5 @@
 /**
- * @file:   NullProcess.h
+ * @file:   NullProcess.c
  * @brief:  Null process implementation
  */
 
