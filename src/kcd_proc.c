@@ -8,7 +8,7 @@
 #ifdef DEBUG_0
 #include "printf.h"
 void* uart_msg = null;
-// initialize the table
+// initialize the table, with linked lists you need to make sure the nodes are being created in valid memory
 
 
 
