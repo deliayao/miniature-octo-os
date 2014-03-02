@@ -10,8 +10,9 @@
 #include "Utilities/Types.h"
 #include "k_process.h"
 #include <LPC17xx.h>
+#include "Polling/uart_polling.h"
 
-#define BIT(X) (1<<X)
+#include "printf.h"
 
 static MessageQueue centralMailbox;
 extern MemoryQueue heap;
@@ -50,22 +51,26 @@ void runTimerProcess() {
     U32 messageBody;
     int senderID = -1;
     
-	/* ack inttrupt, see section  21.6.1 on pg 493 of LPC17XX_UM */
-	LPC_TIM0->IR = BIT(0);  
-	
-    // increment timer
-	g_timer_count++;
-    
-    // get current mail
-    newMessage = nonBlockingReceiveMessage(TIMER_IPROCESS, &senderID);
-    while (newMessage != NULL) {
-        insertEnvelope(&centralMailbox, newMessage);
-    }
+    while (1) {
+        #ifdef DEBUG_0
+        uart0_put_char('.');
+        #endif /* DEBUG_0 */
         
-    // send all expired mail
-    while (centralMailbox.m_First->m_Expiry <= g_timer_count) {
-        newMessage = dequeueEnvelope(&centralMailbox);
-        messageBody = (U32)newMessage + sizeof(Envelope);
-        k_send_message(newMessage->m_DestinationPID, (void *)messageBody);
+        // get current mail
+        newMessage = nonBlockingReceiveMessage(TIMER_IPROCESS, &senderID);
+        while (newMessage != NULL) {
+            insertEnvelope(&centralMailbox, newMessage);
+        }
+            
+        // send all expired mail
+        while (centralMailbox.m_First != NULL && centralMailbox.m_First->m_Expiry <= g_timer_count) {
+            newMessage = dequeueEnvelope(&centralMailbox);
+            messageBody = (U32)newMessage + sizeof(Envelope);
+            k_send_message(newMessage->m_DestinationPID, (void *)messageBody);
+        }
+        
+        __enable_irq();
+        release_processor();
     }
+    
 }

@@ -20,8 +20,9 @@
 #include "printf.h"
 #endif /* DEBUG_0 */
 
-int main() 
-{	
+
+
+int main() {	
 	/* CMSIS system initialization */
 	
 	SystemInit(); 

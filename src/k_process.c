@@ -55,7 +55,7 @@ void process_init() {
 	g_proc_table[TIMER_IPROCESS].m_stack_size = timerProcess.m_stack_size;
 	g_proc_table[TIMER_IPROCESS].mpf_start_pc = timerProcess.mpf_start_pc;
 
-	for ( i = 1; i < NUM_PROCS; i++ ) {
+	for ( i = 1; i < (NUM_PROCS-NUM_IPROCS); i++ ) {
 		g_proc_table[i].m_pid = g_test_procs[i - 1].m_pid;
 		g_proc_table[i].m_priority = g_test_procs[i - 1].m_priority;
 		g_proc_table[i].m_stack_size = g_test_procs[i - 1].m_stack_size;
@@ -106,12 +106,15 @@ PCB *scheduler(void) {
  *@return: RTX_OK upon success
  *         RTX_ERR upon failure
  */
-int process_switch() {
+int process_switch(int iProcessID) {
 	PCB* oldProcess;
 
 	if (currentProcess != NULL) {
-		// add process to appropriate queue and save context
-		if (currentProcess->m_State == BLOCKED_MEM) { // blocked on memory
+        // if current process is an i-process, don't add it to any priority queue
+		// else, add process to appropriate queue and save context
+        if (currentProcess->m_PID == TIMER_IPROCESS || currentProcess->m_PID == UART_IPROCESS) {
+            currentProcess->m_State = READY;
+        } else if (currentProcess->m_State == BLOCKED_MEM) { // blocked on memory
 			enqueueAtPriority(&blockedOnMemoryQueue, currentProcess);
 		} else { // ready
 			enqueueAtPriority(&readyQueue, currentProcess);
@@ -121,7 +124,7 @@ int process_switch() {
 	}
 
 	oldProcess = currentProcess;
-	currentProcess = scheduler();
+	currentProcess = (iProcessID >= 0 && iProcessID < NUM_PROCS) ? processTable[iProcessID] : scheduler();
 
 	// save context of old process if we're actually switching
 	if (currentProcess != oldProcess) {
@@ -148,7 +151,7 @@ int process_switch() {
  * @return RTX_ERR on error and zero on success
  */
 int k_release_processor(void) {
-	return process_switch();
+	return process_switch(-1); 
 }
 
 int k_set_process_priority(int process_id, int priority) {
@@ -198,6 +201,10 @@ int k_get_process_priority(int process_id) {
 int k_send_message(int process_id, void *message_envelope) {
     U32 messageAddress = (U32)message_envelope - sizeof(Envelope);
     return enqueueEnvelope(&(processTable[process_id]->m_Mailbox), (Envelope*)messageAddress);
+}
+
+void *k_receive_message(int *sender_id) {
+	return (void*)NULL;
 }
 
 int deliverMessage(int destinationProcess, Envelope* envelope) {

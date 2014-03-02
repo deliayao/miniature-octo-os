@@ -348,7 +348,7 @@
             <uSurpInc>0</uSurpInc>
             <VariousControls>
               <MiscControls></MiscControls>
-              <Define></Define>
+              <Define>DEBUG_0</Define>
               <Undefine></Undefine>
               <IncludePath></IncludePath>
             </VariousControls>
@@ -580,16 +580,6 @@
               <FileName>MessageQueue.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\src\Utilities\MessageQueue.h</FilePath>
-            </File>
-            <File>
-              <FileName>Threading.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\src\Utilities\Threading.c</FilePath>
-            </File>
-            <File>
-              <FileName>Threading.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\src\Utilities\Threading.h</FilePath>
             </File>
           </Files>
         </Group>
@@ -1169,16 +1159,6 @@
               <FileName>MessageQueue.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\src\Utilities\MessageQueue.h</FilePath>
-            </File>
-            <File>
-              <FileName>Threading.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\src\Utilities\Threading.c</FilePath>
-            </File>
-            <File>
-              <FileName>Threading.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\src\Utilities\Threading.h</FilePath>
             </File>
           </Files>
         </Group>

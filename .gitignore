@@ -23,3 +23,10 @@
 *.map
 *.sct
 *.tra
+
+# Test Process Files
+src/rtx_other.h
+src/usr_proc_A.c
+src/usr_proc_B.c
+src/usr_proc_other.h
+
