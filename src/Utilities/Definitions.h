@@ -68,7 +68,8 @@ typedef enum {
     READY, // queued state
     RUNNING,
     BLOCKED_MEM, // queued state
-    BLOCKED_IO 
+    BLOCKED_IO,
+    BLOCKED_RECEIVE
 } ProcessState;
 
 #endif /* _DEFINITIONS_ */

@@ -8,6 +8,7 @@
 
 #include "Polling/uart_polling.h"
 #include "Utilities/MessageQueue.h"
+#include "Utilities/MemoryQueue.h"
 
 #include "k_process.h"
 
@@ -32,6 +33,9 @@ PROC_INIT g_proc_table[NUM_PROCS];
 extern PROC_INIT g_test_procs[NUM_TEST_PROCS];
 extern PROC_INIT nullProcess;
 extern PROC_INIT timerProcess;
+
+extern MemoryQueue heap;
+extern volatile uint32_t g_timer_count;
 
 /**
  * @brief: initialize all processes in the system
@@ -114,6 +118,7 @@ int process_switch(int iProcessID) {
 		// else, add process to appropriate queue and save context
         if (currentProcess->m_PID == TIMER_IPROCESS || currentProcess->m_PID == UART_IPROCESS) {
             currentProcess->m_State = READY;
+        } else if (currentProcess->m_State == BLOCKED_RECEIVE) {
         } else if (currentProcess->m_State == BLOCKED_MEM) { // blocked on memory
 			enqueueAtPriority(&blockedOnMemoryQueue, currentProcess);
 		} else { // ready
@@ -180,14 +185,21 @@ int k_set_process_priority(int process_id, int priority) {
 		currentProcess->m_Priority = priority;
 		return k_release_processor();
 	}
-
-    // if the specific process is currently queued
-	for (i = 0; i < QUEUED_STATES; i++) {
-		if (updateProcessPriority(masterPQs[i], process_id, oldPriority, priority)) {
-			k_release_processor(); // allow the processor to preempt the current process if it wants to
-			return RTX_OK;
-		}
-	}
+    
+    // handle changing priority of a blocked on receive process
+    // (blocked on receive processes are not in any priority queue)
+    if (processTable[process_id]->m_State == BLOCKED_RECEIVE) {
+        processTable[process_id]->m_Priority = priority;
+        return RTX_OK; // should this case preempt?
+    } else { // if the specified process is currently queued
+        for (i = 0; i < QUEUED_STATES; i++) {
+            if (updateProcessPriority(masterPQs[i], process_id, oldPriority, priority)) {
+                k_release_processor(); // allow the processor to preempt the current process if it wants to
+                return RTX_OK;
+            }
+        }
+    }
+    
 	return RTX_ERR;
 }
 
@@ -199,16 +211,47 @@ int k_get_process_priority(int process_id) {
 }
 
 int k_send_message(int process_id, void *message_envelope) {
-    U32 messageAddress = (U32)message_envelope - sizeof(Envelope);
-    return enqueueEnvelope(&(processTable[process_id]->m_Mailbox), (Envelope*)messageAddress);
+    return deliverMessage(process_id, process_id, message_envelope, 0);
 }
 
 void *k_receive_message(int *sender_id) {
-	return (void*)NULL;
+    Envelope * envelope;
+    
+    while (isEmptyMessageQueue(&(currentProcess->m_Mailbox))) {
+		currentProcess->m_State = BLOCKED_RECEIVE;
+		k_release_processor();
+	}
+
+    envelope = dequeueEnvelope(&(currentProcess->m_Mailbox));
+    *sender_id = envelope->m_SenderPID; // return ID of sender
+    
+	return (void*)((U32)dequeueEnvelope(&(currentProcess->m_Mailbox)) + sizeof(Envelope)); // return the envelope offset by the size of the Envelope
 }
 
-int deliverMessage(int destinationProcess, Envelope* envelope) {
-    return enqueueEnvelope(&(processTable[destinationProcess]->m_Mailbox), envelope);
+int deliverMessage(int envelopeDestinationProcess, int destinationProcess, void* message, int delay) {
+    Envelope* envelope;
+    int result;
+	U32 node = (U32)message - sizeof(Envelope) - sizeof(Node); // for error checking
+	
+	if (!isValidNode(&heap, (Node*)node)) { // make sure it's a valid memory block
+		return RTX_ERR;
+	}
+	
+	node += sizeof(Node);
+	envelope = (Envelope*)node;
+	envelope->m_DestinationPID = envelopeDestinationProcess;
+	envelope->m_SenderPID = currentProcess->m_PID;
+	envelope->m_Expiry = g_timer_count + delay;
+    
+    result = enqueueEnvelope(&(processTable[destinationProcess]->m_Mailbox), envelope);
+    
+    // if the destination process is blocked on receive, unblock it
+    if (processTable[destinationProcess]->m_State == BLOCKED_RECEIVE) {
+        processTable[destinationProcess]->m_State = READY;
+        enqueueAtPriority(&readyQueue, processTable[destinationProcess]);
+    }
+    
+    return result;
 }
 
 int handleMemoryRelease(void) {

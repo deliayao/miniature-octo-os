@@ -15,27 +15,12 @@
 #include "printf.h"
 
 static MessageQueue centralMailbox;
-extern MemoryQueue heap;
-extern PCB* currentProcess; // points to the current RUNNING process
 extern volatile uint32_t g_timer_count;
 
 PROC_INIT timerProcess;
 
 int k_delayed_send(int process_id, void *message_envelope, int delay) {
-    Envelope* envelope;
-	U32 node = (U32)message_envelope - sizeof(Envelope) - sizeof(Node);
-	
-	if (!isValidNode(&heap, (Node*)node)) { // make sure it's a valid memory block
-		return RTX_ERR;
-	}
-	
-	node += sizeof(Node);
-	envelope = (Envelope*)node;
-	envelope->m_DestinationPID = process_id;
-	envelope->m_SenderPID = currentProcess->m_PID;
-	envelope->m_Expiry = g_timer_count + delay;
-    
-    return deliverMessage(process_id, envelope);
+    return deliverMessage(process_id, TIMER_IPROCESS, message_envelope, delay);
 }
 
 void initializeTimerProcess() {
@@ -52,9 +37,9 @@ void runTimerProcess() {
     int senderID = -1;
     
     while (1) {
-        #ifdef DEBUG_0
+        //#ifdef DEBUG_0
         uart0_put_char('.');
-        #endif /* DEBUG_0 */
+        //#endif /* DEBUG_0 */
         
         // get current mail
         newMessage = nonBlockingReceiveMessage(TIMER_IPROCESS, &senderID);

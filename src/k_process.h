@@ -20,7 +20,7 @@ int k_get_process_priority(int process_id); // gets process priority
 void *k_receive_message(int *sender_id); // blocking receive, if message waiting return envelope to caller
 int k_send_message(int process_id, void *message_envelope); // send message to specified process
 
-int deliverMessage(int, Envelope*); // adds the envelope to the message queue of the specified destination process
+int deliverMessage(int, int, void*, int); // adds the envelope to the message queue of the specified destination process
 int handleMemoryRelease(void); // handles a release memory block event
 Envelope* nonBlockingReceiveMessage(int, int *); // non-blocking receive, if message waiting return envelope to caller
 int process_switch(int); //    takes in process id to allow iprocesses to override the scheduler
