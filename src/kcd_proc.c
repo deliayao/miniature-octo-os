@@ -45,7 +45,7 @@ void KCDproc(void) {
 	}
 }
 
-void checkMsgInfo(void* get_msginfo) {
+void checkMsgInfo(Letter* get_msginfo) {
 	
 		//check the type (Command/ Regular string)
  	// if it is regular string, then check if it is the command
