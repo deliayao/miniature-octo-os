@@ -223,9 +223,11 @@ void *k_receive_message(int *sender_id) {
 	}
 
     envelope = dequeueEnvelope(&(currentProcess->m_Mailbox));
-    *sender_id = envelope->m_SenderPID; // return ID of sender
+	  if (sender_id != NULL) {
+			*sender_id = envelope->m_SenderPID; // return ID of sender
+		}
     
-	return (void*)((U32)dequeueEnvelope(&(currentProcess->m_Mailbox)) + sizeof(Envelope)); // return the envelope offset by the size of the Envelope
+	return (void*)((U32)envelope + sizeof(Envelope)); // return the envelope offset by the size of the Envelope
 }
 
 int deliverMessage(int envelopeDestinationProcess, int destinationProcess, void* message, int delay) {
@@ -269,6 +271,8 @@ int handleMemoryRelease(void) {
 
 Envelope* nonBlockingReceiveMessage(int receiverID, int *senderIDOutput) {
     Envelope* message = dequeueEnvelope(&(processTable[receiverID]->m_Mailbox));
-    *senderIDOutput = (message == NULL) ? -1 : message->m_SenderPID;
-    return message;
+		if (senderIDOutput != NULL) {
+			*senderIDOutput = (message == NULL) ? -1 : message->m_SenderPID;
+    }
+		return message;
 }

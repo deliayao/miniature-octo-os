@@ -34,17 +34,17 @@ void initializeTimerProcess() {
 void runTimerProcess() {
     Envelope* newMessage;
     U32 messageBody;
-    int senderID = -1;
     
     while (1) {
         //#ifdef DEBUG_0
-        uart0_put_char('.');
+        //uart0_put_char('.');
         //#endif /* DEBUG_0 */
         
         // get current mail
-        newMessage = nonBlockingReceiveMessage(TIMER_IPROCESS, &senderID);
+        newMessage = nonBlockingReceiveMessage(TIMER_IPROCESS, NULL);
         while (newMessage != NULL) {
             insertEnvelope(&centralMailbox, newMessage);
+						newMessage = nonBlockingReceiveMessage(TIMER_IPROCESS, NULL);
         }
             
         // send all expired mail
