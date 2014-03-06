@@ -9,20 +9,12 @@
 typedef struct Command{
    int command_pid;
    char msgtext;
-   struct Command *Next;
 }Command;
 
-typedef struct KCDTable{
-	struct Command *head;
-	struct Command *last;
-}KCDTable;
-
-void KCDproc(void);
+void initializeKCDProcess(void);
+void kcd_proc(void);
 void addCommand(char mtext, int register_pid);
 void checkMsgInfo(Letter* get_msginfo);
-void initializeKCDTable(void);
 int searchCommand(char mtext);
-
-
 
 #endif /* ! KCD_PROC_H_ */
