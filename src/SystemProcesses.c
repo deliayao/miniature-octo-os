@@ -7,6 +7,8 @@
 #include "SystemProcesses.h"
 #include <LPC17xx.h>
 
+#include "printf.h"
+
 PROC_INIT nullProcess;
 PROC_INIT CRTProcess;
 PROC_INIT KCDProcess;
@@ -54,6 +56,7 @@ void runCRTProcess(void) {
         message = receive_message(NULL);
         send_message(UART_IPROCESS, message);
         pUart->IER = IER_THRE | IER_RLS | IER_RBR;
+        release_processor();
     }
 }
 
@@ -63,6 +66,7 @@ void runKCDProcess(void) {
     while (1) {
         message = receive_message(NULL);
         send_message(CRT_PROCESS, message);
+        release_processor();
     }
 }
 

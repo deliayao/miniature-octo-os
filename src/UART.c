@@ -274,11 +274,12 @@ void c_UART0_IRQHandler(void)
         
         // THRE interrupt, transmit holding register becomes empty
         newLetter = (Letter*)nonBlockingReceiveMessage(UART_IPROCESS, NULL);
-        if (newLetter != NULL) {
+        while (newLetter != NULL) {
             pUart->THR = newLetter->m_Text; // print character
-            pUart->IER ^= IER_THRE; // toggle IER_THRE bit 
             nonPreemptiveReleaseMemory((void*)newLetter); // release message's memory
+            newLetter = (Letter*)nonBlockingReceiveMessage(UART_IPROCESS, NULL);
         }
+        pUart->IER ^= IER_THRE; // toggle IER_THRE bit
     } else {  /* not implemented yet */
 #ifdef DEBUG_0
             uart1_put_string("Should not get here!\n\r");

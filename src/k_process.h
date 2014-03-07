@@ -26,7 +26,7 @@ int nonPreemptiveSendMessage(int, void*); // sends the message to the specified 
 
 int deliverMessage(int, int, void*, int); // adds the envelope to the message queue of the specified destination process
 int handleMemoryRelease(int); // handles a release memory block event, prempts if specified
-int process_switch(int); // takes in process id to allow iprocesses to override the scheduler
+int process_switch(void); // takes in process id to allow iprocesses to override the scheduler
 
 extern U32 *alloc_stack(U32 size_b);   /* allocate stack for a process */
 extern void __rte(void);               /* pop exception stack frame */

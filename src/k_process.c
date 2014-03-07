@@ -131,15 +131,13 @@ PCB *scheduler(void) {
  *@return: RTX_OK upon success
  *         RTX_ERR upon failure
  */
-int process_switch(int iProcessID) {
+int process_switch() {
 	PCB* oldProcess;
 
 	if (currentProcess != NULL) {
         // if current process is an i-process, don't add it to any priority queue
 		// else, add process to appropriate queue and save context
-        if (isIProcess(currentProcess->m_PID)) {
-            currentProcess->m_State = READY;
-        } else if (currentProcess->m_State == BLOCKED_RECEIVE) {
+        if (currentProcess->m_State == BLOCKED_RECEIVE) {
         } else if (currentProcess->m_State == BLOCKED_MEM) { // blocked on memory
 			enqueueAtPriority(&blockedOnMemoryQueue, currentProcess);
 		} else { // ready
@@ -150,7 +148,7 @@ int process_switch(int iProcessID) {
 	}
 
 	oldProcess = currentProcess;
-	currentProcess = (iProcessID >= 0 && iProcessID < NUM_PROCS) ? processTable[iProcessID] : scheduler();
+	currentProcess = scheduler();
 
 	// save context of old process if we're actually switching
 	if (currentProcess != oldProcess) {
@@ -177,7 +175,7 @@ int process_switch(int iProcessID) {
  * @return RTX_ERR on error and zero on success
  */
 int k_release_processor(void) {
-	return process_switch(-1); 
+	return process_switch(); 
 }
 
 int k_set_process_priority(int process_id, int priority) {
