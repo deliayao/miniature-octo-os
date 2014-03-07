@@ -472,16 +472,6 @@
               <FilePath>.\src\Polling\uart_polling.h</FilePath>
             </File>
             <File>
-              <FileName>TimerProcess.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\src\TimerProcess.c</FilePath>
-            </File>
-            <File>
-              <FileName>TimerProcess.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\src\TimerProcess.h</FilePath>
-            </File>
-            <File>
               <FileName>Timer.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\src\Timer.c</FilePath>
@@ -490,6 +480,16 @@
               <FileName>Timer.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\src\Timer.h</FilePath>
+            </File>
+            <File>
+              <FileName>UART.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\UART.c</FilePath>
+            </File>
+            <File>
+              <FileName>UART.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\src\UART.h</FilePath>
             </File>
           </Files>
         </Group>
@@ -512,14 +512,14 @@
               <FilePath>.\src\usr_proc.h</FilePath>
             </File>
             <File>
-              <FileName>NullProcess.c</FileName>
+              <FileName>SystemProcesses.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\src\NullProcess.c</FilePath>
+              <FilePath>.\src\SystemProcesses.c</FilePath>
             </File>
             <File>
-              <FileName>NullProcess.h</FileName>
+              <FileName>SystemProcesses.h</FileName>
               <FileType>5</FileType>
-              <FilePath>.\src\NullProcess.h</FilePath>
+              <FilePath>.\src\SystemProcesses.h</FilePath>
             </File>
           </Files>
         </Group>
@@ -1051,16 +1051,6 @@
               <FilePath>.\src\Polling\uart_polling.h</FilePath>
             </File>
             <File>
-              <FileName>TimerProcess.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\src\TimerProcess.c</FilePath>
-            </File>
-            <File>
-              <FileName>TimerProcess.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\src\TimerProcess.h</FilePath>
-            </File>
-            <File>
               <FileName>Timer.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\src\Timer.c</FilePath>
@@ -1069,6 +1059,16 @@
               <FileName>Timer.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\src\Timer.h</FilePath>
+            </File>
+            <File>
+              <FileName>UART.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\UART.c</FilePath>
+            </File>
+            <File>
+              <FileName>UART.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\src\UART.h</FilePath>
             </File>
           </Files>
         </Group>
@@ -1091,14 +1091,14 @@
               <FilePath>.\src\usr_proc.h</FilePath>
             </File>
             <File>
-              <FileName>NullProcess.c</FileName>
+              <FileName>SystemProcesses.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\src\NullProcess.c</FilePath>
+              <FilePath>.\src\SystemProcesses.c</FilePath>
             </File>
             <File>
-              <FileName>NullProcess.h</FileName>
+              <FileName>SystemProcesses.h</FileName>
               <FileType>5</FileType>
-              <FilePath>.\src\NullProcess.h</FilePath>
+              <FilePath>.\src\SystemProcesses.h</FilePath>
             </File>
           </Files>
         </Group>

@@ -8,7 +8,7 @@
 PCB* dequeueAtPriority(PriorityQueue* priorityQueue, int priority) {
     PCB* front = NULL;
 
-    if (priority >= HIGH && priority <= NULL_PRIORITY) {
+    if (priority >= PRIVILEGED && priority <= NULL_PRIORITY) {
         front = dequeue(getQueueAtPriority(priorityQueue, priority));
     }
     return front;
@@ -28,7 +28,7 @@ PCB* dequeueHighest(PriorityQueue* priorityQueue) {
 }
 
 int enqueueAtPriority(PriorityQueue* priorityQueue, PCB* process) {
-	if (process->m_Priority < HIGH || process->m_Priority > NULL_PRIORITY) {
+	if (process->m_Priority < PRIVILEGED || process->m_Priority > NULL_PRIORITY) {
 		return -1;
 	}
 	return enqueue(getQueueAtPriority(priorityQueue, process->m_Priority), process);

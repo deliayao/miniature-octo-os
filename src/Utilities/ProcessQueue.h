@@ -45,4 +45,7 @@ int isEmptyProcessQueue(ProcessQueue*);
 // returns NULL if the process is not found
 PCB* removeProcess(ProcessQueue*, int processId);
 
+//returns true if processID is the ID of an I-Process
+int isIProcess(int processID);
+
 #endif /* _PROCESS_QUEUE_ */

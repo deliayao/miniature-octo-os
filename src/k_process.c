@@ -32,7 +32,10 @@ PriorityQueue blockedOnMemoryQueue;
 PROC_INIT g_proc_table[NUM_PROCS];
 extern PROC_INIT g_test_procs[NUM_TEST_PROCS];
 extern PROC_INIT nullProcess;
+extern PROC_INIT KCDProcess;
+extern PROC_INIT CRTProcess;
 extern PROC_INIT timerProcess;
+extern PROC_INIT UARTProcess;
 
 extern MemoryQueue heap;
 extern volatile uint32_t g_timer_count;
@@ -45,21 +48,39 @@ void process_init() {
 	U32 *sp;
 
 	// initialize processes
-	initializeNullProcess();
+	initializeSystemProcesses();
     initializeTimerProcess();
+    initializeUARTProcess();
 	set_test_procs();
 
+    // system processes
 	g_proc_table[NULL_PROCESS].m_pid = nullProcess.m_pid;
 	g_proc_table[NULL_PROCESS].m_priority = nullProcess.m_priority;
 	g_proc_table[NULL_PROCESS].m_stack_size = nullProcess.m_stack_size;
 	g_proc_table[NULL_PROCESS].mpf_start_pc = nullProcess.mpf_start_pc;
     
+    g_proc_table[KCD_PROCESS].m_pid = KCDProcess.m_pid;
+	g_proc_table[KCD_PROCESS].m_priority = KCDProcess.m_priority;
+	g_proc_table[KCD_PROCESS].m_stack_size = KCDProcess.m_stack_size;
+	g_proc_table[KCD_PROCESS].mpf_start_pc = KCDProcess.mpf_start_pc;
+    
+    g_proc_table[CRT_PROCESS].m_pid = CRTProcess.m_pid;
+	g_proc_table[CRT_PROCESS].m_priority = CRTProcess.m_priority;
+	g_proc_table[CRT_PROCESS].m_stack_size = CRTProcess.m_stack_size;
+	g_proc_table[CRT_PROCESS].mpf_start_pc = CRTProcess.mpf_start_pc;
+    
     g_proc_table[TIMER_IPROCESS].m_pid = timerProcess.m_pid;
 	g_proc_table[TIMER_IPROCESS].m_priority = timerProcess.m_priority;
 	g_proc_table[TIMER_IPROCESS].m_stack_size = timerProcess.m_stack_size;
 	g_proc_table[TIMER_IPROCESS].mpf_start_pc = timerProcess.mpf_start_pc;
+    
+    g_proc_table[UART_IPROCESS].m_pid = UARTProcess.m_pid;
+	g_proc_table[UART_IPROCESS].m_priority = UARTProcess.m_priority;
+	g_proc_table[UART_IPROCESS].m_stack_size = UARTProcess.m_stack_size;
+	g_proc_table[UART_IPROCESS].mpf_start_pc = UARTProcess.mpf_start_pc;
 
-	for ( i = 1; i < (NUM_PROCS-NUM_IPROCS); i++ ) {
+    // test processes
+	for ( i = 1; i < (NUM_PROCS - (NUM_IPROCS + NUM_SYSTEM_PROCS)); i++ ) {
 		g_proc_table[i].m_pid = g_test_procs[i - 1].m_pid;
 		g_proc_table[i].m_priority = g_test_procs[i - 1].m_priority;
 		g_proc_table[i].m_stack_size = g_test_procs[i - 1].m_stack_size;
@@ -116,7 +137,7 @@ int process_switch(int iProcessID) {
 	if (currentProcess != NULL) {
         // if current process is an i-process, don't add it to any priority queue
 		// else, add process to appropriate queue and save context
-        if (currentProcess->m_PID == TIMER_IPROCESS || currentProcess->m_PID == UART_IPROCESS) {
+        if (isIProcess(currentProcess->m_PID)) {
             currentProcess->m_State = READY;
         } else if (currentProcess->m_State == BLOCKED_RECEIVE) {
         } else if (currentProcess->m_State == BLOCKED_MEM) { // blocked on memory
@@ -166,7 +187,7 @@ int k_set_process_priority(int process_id, int priority) {
 	if (process_id <= 0 || process_id >= NUM_PROCS) { // cannot change priority of null process
 		return RTX_ERR;
 	}
-	if (priority < HIGH || priority > LOWEST) { // cannot change to NULL_PRIORITY
+	if (priority < HIGH || priority > LOWEST) { // cannot change to PRIVILEGED or NULL_PRIORITY
 		return RTX_ERR;
 	}
 
@@ -211,7 +232,21 @@ int k_get_process_priority(int process_id) {
 }
 
 int k_send_message(int process_id, void *message_envelope) {
-    return deliverMessage(process_id, process_id, message_envelope, 0);
+    PCB* destination = processTable[process_id];
+    int result = deliverMessage(process_id, process_id, message_envelope, 0);
+    
+    // if the destination process is blocked on receive, unblock it
+    if (destination->m_State == BLOCKED_RECEIVE) {
+        destination->m_State = READY;
+        enqueueAtPriority(&readyQueue, destination);
+        
+        // preempt current process if destination process has higher priority and is blocked on receive
+        if (destination->m_Priority < currentProcess->m_Priority) {
+            return k_release_processor();
+        }
+    }
+    
+    return result;
 }
 
 void *k_receive_message(int *sender_id) {
@@ -223,16 +258,16 @@ void *k_receive_message(int *sender_id) {
 	}
 
     envelope = dequeueEnvelope(&(currentProcess->m_Mailbox));
-	  if (sender_id != NULL) {
-			*sender_id = envelope->m_SenderPID; // return ID of sender
-		}
+	if (sender_id != NULL) {
+		*sender_id = envelope->m_SenderPID; // return ID of sender
+	}
     
-	return (void*)((U32)envelope + sizeof(Envelope)); // return the envelope offset by the size of the Envelope
+	return (void*)((U32)envelope + sizeof(Envelope)); // return the envelope offset by the size of Envelope
 }
 
 int deliverMessage(int envelopeDestinationProcess, int destinationProcess, void* message, int delay) {
     Envelope* envelope;
-    int result;
+    PCB* destination = processTable[destinationProcess];
 	U32 node = (U32)message - sizeof(Envelope) - sizeof(Node); // for error checking
 	
 	if (!isValidNode(&heap, (Node*)node)) { // make sure it's a valid memory block
@@ -245,18 +280,10 @@ int deliverMessage(int envelopeDestinationProcess, int destinationProcess, void*
 	envelope->m_SenderPID = currentProcess->m_PID;
 	envelope->m_Expiry = g_timer_count + delay;
     
-    result = enqueueEnvelope(&(processTable[destinationProcess]->m_Mailbox), envelope);
-    
-    // if the destination process is blocked on receive, unblock it
-    if (processTable[destinationProcess]->m_State == BLOCKED_RECEIVE) {
-        processTable[destinationProcess]->m_State = READY;
-        enqueueAtPriority(&readyQueue, processTable[destinationProcess]);
-    }
-    
-    return result;
+    return enqueueEnvelope(&(destination->m_Mailbox), envelope);
 }
 
-int handleMemoryRelease(void) {
+int handleMemoryRelease(int preempt) {
 	if (!isEmptyPriorityQueue(&blockedOnMemoryQueue)) {
 		// clear blocked on memory queue, move processes to ready
 		PCB* process = dequeueHighest(&blockedOnMemoryQueue);
@@ -264,15 +291,30 @@ int handleMemoryRelease(void) {
 			process->m_State = READY;
 			enqueueAtPriority(&readyQueue, process);
 		}
-		return k_release_processor();
+        if (preempt) {
+            return k_release_processor();
+        }
 	}
 	return RTX_OK;
 }
 
-Envelope* nonBlockingReceiveMessage(int receiverID, int *senderIDOutput) {
-    Envelope* message = dequeueEnvelope(&(processTable[receiverID]->m_Mailbox));
-		if (senderIDOutput != NULL) {
-			*senderIDOutput = (message == NULL) ? -1 : message->m_SenderPID;
+void* nonBlockingReceiveMessage(int receiverID, int *senderIDOutput) {
+    Envelope* envelope = dequeueEnvelope(&(processTable[receiverID]->m_Mailbox));
+	if (senderIDOutput != NULL) {
+		*senderIDOutput = (envelope == NULL) ? -1 : envelope->m_SenderPID;
     }
-		return message;
+    return (envelope == NULL) ? (void*)envelope : (void*)((U32)envelope + sizeof(Envelope)); // return the envelope offset by the size of Envelope
+}
+
+int nonPreemptiveSendMessage(int destinationID, void* message) {
+    PCB* destination = processTable[destinationID];
+    int result = deliverMessage(destinationID, destinationID, message, 0);
+    
+    // if the destination process is blocked on receive, unblock it
+    if (destination->m_State == BLOCKED_RECEIVE) {
+        destination->m_State = READY;
+        enqueueAtPriority(&readyQueue, destination);
+    }
+    
+    return result;
 }

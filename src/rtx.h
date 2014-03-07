@@ -12,11 +12,12 @@
 #define NUM_TEST_PROCS 6
 
 /* Process Priority. The bigger the number is, the lower the priority is*/
-#define HIGH    0
-#define MEDIUM  1
-#define LOW     2
-#define LOWEST  3
-#define NULL_PRIORITY 4
+#define PRIVILEGED       0
+#define HIGH             1
+#define MEDIUM           2
+#define LOW              3
+#define LOWEST           4
+#define NULL_PRIORITY    5
 
 // Process IDs
 #define NULL_PROCESS 					0
@@ -31,14 +32,36 @@
 #define PROCESS_C    					9
 #define PROCESS_SET_PRIORITY 	10
 #define CLOCK_PROCESS        	11
-#define KCD_PROCESS          	12
-#define CRT_PROCESS          	13
-#define TIMER_IPROCESS  			14
-#define UART_IPROCESS   			15
+#define KCD_PROCESS          	7
+#define CRT_PROCESS          	8
+#define TIMER_IPROCESS  			9
+#define UART_IPROCESS   			10
 
 // Message Types
 #define DEFAULT 0
 #define KCD_REG 1
+
+// UART flags
+#define IER_RBR		0x01
+#define IER_THRE	0x02
+#define IER_RLS		0x04
+
+#define IIR_PEND	0x01
+#define IIR_RLS		0x03
+#define IIR_RDA		0x02
+#define IIR_CTI		0x06
+#define IIR_THRE	0x01
+
+#define LSR_RDR		0x01
+#define LSR_OE		0x02
+#define LSR_PE		0x04
+#define LSR_FE		0x08
+#define LSR_BI		0x10
+#define LSR_THRE	0x20
+#define LSR_TEMT	0x40
+#define LSR_RXFE	0x80
+
+#define BUFSIZE		0x40
 
 /* ----- Types ----- */
 typedef unsigned int U32;
@@ -56,7 +79,7 @@ typedef struct proc_init
 typedef struct Letter
 {
     int m_Type; // message type
-    char* m_Text; // message body
+    char m_Text; // message body
 } Letter;
 
 /* ----- RTX User API ----- */

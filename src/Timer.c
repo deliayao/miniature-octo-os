@@ -6,14 +6,17 @@
  * @date 2012/02/12
  */
 
-#include <LPC17xx.h>
 #include "Timer.h"
+
 #include "Utilities/Definitions.h"
 #include "k_process.h"
 
-#define BIT(X) (1<<X)
+#include <LPC17xx.h>
 
+static MessageQueue centralMailbox; // temporary mailbox for delayed send
 volatile uint32_t g_timer_count = 0; // increment every 1 ms
+
+PROC_INIT timerProcess; // for timer i-process PCB
 
 /**
  * @brief: initialize timer. Only timer 0 is supported
@@ -93,6 +96,18 @@ uint32_t timer_init(uint8_t n_timer)
 	return 0;
 }
 
+int k_delayed_send(int process_id, void *message_envelope, int delay) {
+    return deliverMessage(process_id, TIMER_IPROCESS, message_envelope, delay);
+}
+
+void initializeTimerProcess() {
+    initializeMessageQueue(&centralMailbox);
+	timerProcess.m_pid = (U32)TIMER_IPROCESS;
+	timerProcess.m_priority = NULL_PRIORITY;
+	timerProcess.m_stack_size = 0x100;
+	timerProcess.mpf_start_pc = NULL;
+}
+
 /**
  * @brief: use CMSIS ISR for TIMER0 IRQ Handler
  * NOTE: This example shows how to save/restore all registers rather than just
@@ -112,11 +127,31 @@ __asm void TIMER0_IRQHandler(void)
  * @brief: c TIMER0 IRQ Handler
  */
 void c_TIMER0_IRQHandler(void) {
+    void* newMessage;
+    Envelope* envelope;
+    
     __disable_irq();
 	/* acknowledge interrupt, see section  21.6.1 on pg 493 of LPC17XX_UM */
 	LPC_TIM0->IR = BIT(0);  
 	
+    // increment timer
 	g_timer_count++;
-    process_switch(TIMER_IPROCESS);
+    
+    // get current mail
+    newMessage = nonBlockingReceiveMessage(TIMER_IPROCESS, NULL);
+    while (newMessage != NULL) {
+        envelope = (Envelope*)((U32)newMessage - sizeof(Envelope)); // get address of envelope
+        insertEnvelope(&centralMailbox, envelope);
+        newMessage = nonBlockingReceiveMessage(TIMER_IPROCESS, NULL);
+    }
+        
+    // send all expired mail
+    while (centralMailbox.m_First != NULL && centralMailbox.m_First->m_Expiry <= g_timer_count) {
+        envelope = dequeueEnvelope(&centralMailbox);
+        nonPreemptiveSendMessage(envelope->m_DestinationPID, (void *)((U32)envelope + sizeof(Envelope)));
+    }
+    
+    __enable_irq();
+    k_release_processor();
 }
 

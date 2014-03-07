@@ -109,8 +109,29 @@ int k_release_memory_block(void *p_mem_blk) {
 #endif /* ! DEBUG_0 */
 
 	if (isValidNode(&heap, memoryToFree)) {
-			enqueueNode(&heap, memoryToFree); //if valid add back to heap
-			return handleMemoryRelease();
+		enqueueNode(&heap, memoryToFree); // if valid, add back to heap
+		return handleMemoryRelease(1); // allow preemption
+	}
+	return RTX_ERR;
+}
+
+void* nonBlockingRequestMemory(void) {
+    Node* memoryBlock = dequeueNode(&heap);
+    if (memoryBlock != NULL) {
+        // we retrieved a memory block
+        // add the size of the header before returning it
+        return (void*)((U32)memoryBlock + sizeof(Node) + sizeof(Envelope));
+    } else {
+        return (void*)NULL;
+    }
+}
+
+int nonPreemptiveReleaseMemory(void* memory) {
+    Node* memoryToFree = (Node *)((U32)memory - sizeof(Node) - sizeof(Envelope)); // if the node is valid, it will occur at this address
+	
+    if (isValidNode(&heap, memoryToFree)) {
+		enqueueNode(&heap, memoryToFree); // if valid, add back to heap
+		return handleMemoryRelease(0); // do not allow preemption
 	}
 	return RTX_ERR;
 }

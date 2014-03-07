@@ -26,4 +26,10 @@ typedef struct Envelope {
 	int m_Expiry; // message will be sent after this time is reached
 } Envelope;
 
+// letter data structure exposing user info
+typedef struct Letter {
+    int m_Type; // message type
+    char m_Text; // message body
+} Letter;
+
 #endif /* _TYPES_ */

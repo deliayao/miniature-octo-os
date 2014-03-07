@@ -26,4 +26,8 @@ U32 *alloc_stack(U32 size_b);
 void *k_request_memory_block(void);
 int k_release_memory_block(void *);
 
+// non-blocking and non-preemptive primitives
+void* nonBlockingRequestMemory(void); // returns a NULL pointer if no memory is available (does not block)
+int nonPreemptiveReleaseMemory(void *); // releases the memory block, does not preempt
+
 #endif /* ! K_MEM_H_ */

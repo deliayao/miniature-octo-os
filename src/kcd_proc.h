@@ -6,7 +6,7 @@
 #define KCD_PROC_H_
 
 /* initialization table item */
-typedef struct Command{
+typedef struct Command {
    int command_pid;
    char msgtext;
 }Command;

@@ -71,3 +71,7 @@ PCB* removeProcess(ProcessQueue* queue, int processId) {
 	}
 	return (PCB*)NULL;
 }
+
+int isIProcess(int processID) {
+    return (processID == TIMER_IPROCESS || processID == UART_IPROCESS);
+}
