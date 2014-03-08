@@ -37,10 +37,6 @@
 #define TIMER_IPROCESS  			9
 #define UART_IPROCESS   			10
 
-// Message Types
-#define DEFAULT 0
-#define KCD_REG 1
-
 // UART flags
 #define IER_RBR		0x01
 #define IER_THRE	0x02
@@ -76,10 +72,21 @@ typedef struct proc_init
 } PROC_INIT;
 
 // For IPC
+#define MAX_LETTER_LENGTH 35
+
+// Message Types
+#define DEFAULT 0
+#define KCD_REG 1
+
+//Command Table
+#define COMMAND_TABLE_SIZE 10
+#define MAX_COMMAND_LENGTH 3
+
+//Letter Definition
 typedef struct Letter
 {
     int m_Type; // message type
-    char m_Text; // message body
+    char* m_Text; // message body
 } Letter;
 
 /* ----- RTX User API ----- */

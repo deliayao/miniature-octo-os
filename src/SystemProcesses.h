@@ -16,4 +16,21 @@ void runNullProcess(void);
 void runCRTProcess(void);
 void runKCDProcess(void);
 
+
+//KCD helper functions and structures
+
+/* initialization table item */
+typedef struct Command{
+   int commandPID;
+   char* commandText;
+}Command;
+
+int getCommandSize(char* command);
+void initializeKCDProcess(void);
+void kcd_proc(void);
+void addCommand(char* mtext, int register_pid);
+void checkMsgInfo(Letter* get_msginfo);
+int getCommandProcess(char* buffer); // check if buffer is a command, if it is return the process id, otherwise it returns -1
+void clearBuffer(char* buffer, int n); // 
+
 #endif /* _SYSTEM_PROCESSES_ */
