@@ -264,7 +264,9 @@ void c_UART0_IRQHandler(void)
         if (node != NULL) {
             newLetter = (Letter*)node;
             newLetter->m_Type = DEFAULT;
-            newLetter->m_Text = character;
+			newLetter->m_Text = (char*)((U32)newLetter + sizeof(Letter));
+            newLetter->m_Text[0] = character;
+            newLetter->m_Text[1] = '\0';
             
             // send the letter
             nonPreemptiveSendMessage(KCD_PROCESS, (void*)newLetter);
@@ -275,7 +277,10 @@ void c_UART0_IRQHandler(void)
         // THRE interrupt, transmit holding register becomes empty
         newLetter = (Letter*)nonBlockingReceiveMessage(UART_IPROCESS, NULL);
         while (newLetter != NULL) {
-            pUart->THR = newLetter->m_Text; // print character
+            int i;
+			for (i = 0; newLetter->m_Text[i] != '\0'; i++) {
+                pUart->THR = newLetter->m_Text[i]; // print character
+            }		
             nonPreemptiveReleaseMemory((void*)newLetter); // release message's memory
             newLetter = (Letter*)nonBlockingReceiveMessage(UART_IPROCESS, NULL);
         }

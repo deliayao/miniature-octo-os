@@ -59,6 +59,7 @@ void runCRTProcess(void) {
         message = receive_message(NULL);
         send_message(UART_IPROCESS, message);
         pUart->IER = IER_THRE | IER_RLS | IER_RBR;
+			  release_processor();
     }
 }
 
@@ -72,14 +73,17 @@ struct Command* table [COMMAND_TABLE_SIZE] =  {0}; //THIS COULD BE POTENTIALLY H
 int index = 0;
 
 void runKCDProcess(void) {
-   /*
+   
 		//DELIA+ANDREW DUMMY runKCD PROCESS
 		void * message;
     
     while (1) {
         message = receive_message(NULL);
         send_message(CRT_PROCESS, message);
-    }*/
+			  release_processor();
+    }
+		
+		
     //KCD PSEUDOCODE
     //receive message
     // if (message->type is regular)
@@ -91,7 +95,7 @@ void runKCDProcess(void) {
     //      check command isn't already registered
     //      register command
         
-    Letter* message; 
+   /* Letter* message; 
 	int sender;
     char buffer[MAX_LETTER_LENGTH];
     clearBuffer(buffer, MAX_LETTER_LENGTH);
@@ -143,8 +147,10 @@ void runKCDProcess(void) {
             }
         }
         release_processor();
-    }
+    }*/
 }
+
+/*
 int getCommandSize(char* command){
     int size = 0;
     while(command[size] != '\0'){
@@ -191,6 +197,7 @@ void  clearBuffer(char* buffer, int n){
         buffer[i] = '\0';
     }
 }
+*/
 
 
 
