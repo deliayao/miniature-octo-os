@@ -44,10 +44,8 @@ void runClockProcess(void){
 		if(sender == KCD_PROCESS){
 			if(message->m_Text[2] == 'S'){
 				setClock(message->m_Text);
-				
 			}else if(message->m_Text[2] == 'R'){
 				resetClock();
-				
 			}
 		}
 		//not sure if we can update the clock for more than 1 sec.... as it will try to receive a message after this if statement and if there is no message then it will get blocked
@@ -59,7 +57,6 @@ void runClockProcess(void){
 }
 
 void updateClock(){
-	int index = CLOCK_STRING_LENGTH - 1;
 	uint32_t hour;
 	uint32_t minute;
 	uint32_t second;
@@ -86,9 +83,12 @@ void updateClock(){
 }
 
 void messageToCRT(void){
+	int i;
 	Letter* clockMessage;
 	clockMessage->m_Type = DEFAULT;
-	clockMessage->m_Text = clockString;
+	for(i = 0; i < CLOCK_STRING_LENGTH; i++){
+		clockMessage->m_Text[i] = clockString[i];
+	}
 	send_message(CRT_PROCESS, (void *)clockMessage);
 }
 	
@@ -103,7 +103,7 @@ void resetClock(void){
 	}
 	baseTime = 0;
 	start = g_timer_count;	//set start time
-	messageToCRT();
+	messageToCRT(); //send the 00:00:00 to CRT 
 }
 
 void setClock(char* m_Text){
@@ -125,6 +125,6 @@ void setClock(char* m_Text){
 			}
 	}
 	start = g_timer_count;	//set start time
-	messageToCRT();
+	messageToCRT(); //send the current clock to CRT 
 }
 
