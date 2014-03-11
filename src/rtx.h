@@ -86,7 +86,7 @@ typedef struct proc_init
 typedef struct Letter
 {
     int m_Type; // message type
-    char* m_Text; // message body
+    char m_Text[MAX_LETTER_LENGTH]; // message body
 } Letter;
 
 /* ----- RTX User API ----- */

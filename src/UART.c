@@ -264,7 +264,6 @@ void c_UART0_IRQHandler(void)
         if (node != NULL) {
             newLetter = (Letter*)node;
             newLetter->m_Type = DEFAULT;
-			newLetter->m_Text = (char*)((U32)newLetter + sizeof(Letter));
             newLetter->m_Text[0] = character;
             newLetter->m_Text[1] = '\0';
             

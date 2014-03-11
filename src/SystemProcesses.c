@@ -8,9 +8,9 @@
 #include <LPC17xx.h>
 #include "Polling/uart_polling.h"
 
-#ifdef DEBUG_0
+
 #include "printf.h"
-#endif /* DEBUG_0 */
+
 
 PROC_INIT nullProcess;
 PROC_INIT CRTProcess;
@@ -74,14 +74,14 @@ int index = 0;
 
 void runKCDProcess(void) {
    
-		//DELIA+ANDREW DUMMY runKCD PROCESS
-		void * message;
+	//DELIA+ANDREW DUMMY runKCD PROCESS
+	/*void * message;
     
     while (1) {
         message = receive_message(NULL);
         send_message(CRT_PROCESS, message);
 			  release_processor();
-    }
+    }*/
 		
 		
     //KCD PSEUDOCODE
@@ -95,10 +95,11 @@ void runKCDProcess(void) {
     //      check command isn't already registered
     //      register command
         
-   /* Letter* message; 
-	int sender;
+    Letter* message;     
+    int sender;
     char buffer[MAX_LETTER_LENGTH];
     clearBuffer(buffer, MAX_LETTER_LENGTH);
+    
     
     while(1) {
         message = (Letter*)receive_message(&sender);
@@ -115,9 +116,12 @@ void runKCDProcess(void) {
                             send_message(CRT_PROCESS, message);
                             process = getCommandProcess(buffer);
                             if (process != -1) {
+                                int i;
                                 Letter* commandMessage = (Letter*)request_memory_block();
                                 commandMessage->m_Type = DEFAULT;
-                                commandMessage->m_Text = buffer;
+                                for (i = 0; buffer[i] != '\0'; i++) {
+                                    commandMessage->m_Text[i] = buffer[i];
+                                }
                                 send_message(process, (void*)commandMessage);
                             }
                             clearBuffer(buffer, MAX_LETTER_LENGTH);
@@ -147,10 +151,9 @@ void runKCDProcess(void) {
             }
         }
         release_processor();
-    }*/
+    }
 }
 
-/*
 int getCommandSize(char* command){
     int size = 0;
     while(command[size] != '\0'){
@@ -197,7 +200,7 @@ void  clearBuffer(char* buffer, int n){
         buffer[i] = '\0';
     }
 }
-*/
+
 
 
 

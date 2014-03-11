@@ -12,9 +12,7 @@
 
 #include "k_process.h"
 
-#ifdef DEBUG_0
 #include "printf.h"
-#endif /* DEBUG_0 */
 
 PCB* processTable[NUM_PROCS]; // kernel process table
 PCB* currentProcess; // points to the current RUNNING process
@@ -153,12 +151,13 @@ int process_switch() {
 	// save context of old process if we're actually switching
 	if (currentProcess != oldProcess) {
 		if (currentProcess->m_State == READY || currentProcess->m_State == NEW) {
+            ProcessState state = currentProcess->m_State;
+            currentProcess->m_State = RUNNING;
 			__set_MSP((U32) currentProcess->m_ProcessSP); // switch to the new processes's stack
 
-			if (currentProcess->m_State == NEW) {
+			if (state == NEW) {
 				__rte(); // pop exception stack frame from the stack for new processes
 			}
-			currentProcess->m_State = RUNNING;
 		} else { // if the scheduler chose a process that isn't READY or NEW, something broke
 			currentProcess = oldProcess;
 			return RTX_ERR;
@@ -254,7 +253,7 @@ void *k_receive_message(int *sender_id) {
 		currentProcess->m_State = BLOCKED_RECEIVE;
 		k_release_processor();
 	}
-
+    
     envelope = dequeueEnvelope(&(currentProcess->m_Mailbox));
 	if (sender_id != NULL) {
 		*sender_id = envelope->m_SenderPID; // return ID of sender

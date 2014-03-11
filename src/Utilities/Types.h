@@ -29,7 +29,7 @@ typedef struct Envelope {
 // letter data structure exposing user info
 typedef struct Letter {
     int m_Type; // message type
-    char* m_Text; // message body
+    char m_Text[MAX_LETTER_LENGTH]; // message body
 } Letter;
 
 #endif /* _TYPES_ */
