@@ -521,6 +521,16 @@
               <FileType>5</FileType>
               <FilePath>.\src\SystemProcesses.h</FilePath>
             </File>
+            <File>
+              <FileName>ClockProcess.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\ClockProcess.c</FilePath>
+            </File>
+            <File>
+              <FileName>ClockProcess.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\src\ClockProcess.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -1099,6 +1109,16 @@
               <FileName>SystemProcesses.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\src\SystemProcesses.h</FilePath>
+            </File>
+            <File>
+              <FileName>ClockProcess.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\ClockProcess.c</FilePath>
+            </File>
+            <File>
+              <FileName>ClockProcess.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\src\ClockProcess.h</FilePath>
             </File>
           </Files>
         </Group>
