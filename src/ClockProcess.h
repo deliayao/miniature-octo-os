@@ -9,7 +9,7 @@
 #define CLOCK_STRING_LENGTH 8
 
 void initializeClockProcess(void); // initializes wall clock processes
-
+void messageToWallClock(void);
 void runClockProcess(void);
 void messageToCRT(void);
 void updateClock(void);

@@ -79,7 +79,15 @@ void updateClock(){
 		clockString[5] = second%10 + '0';
 		
 		messageToCRT();
+		messageToWallClock();
 	}
+}
+
+void messageToWallClock(void){
+	int i;
+	Letter* clockMessage;
+	clockMessage->m_Type = DEFAULT;
+	send_message(CLOCK_PROCESS, (void *)clockMessage);
 }
 
 void messageToCRT(void){
