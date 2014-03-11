@@ -6,6 +6,8 @@
 #ifndef _SYSTEM_PROCESSES_
 #define _SYSTEM_PROCESSES_
 
+#include "rtx.h"
+
 void initializeSystemProcesses(void); // initializes all system processes
 
 void initializeNullProcess(void); // initializes the null process
@@ -20,10 +22,10 @@ void runKCDProcess(void);
 //KCD helper functions and structures
 
 /* initialization table item */
-typedef struct Command{
+typedef struct Command {
    int commandPID;
-   char* commandText;
-}Command;
+   char commandText[MAX_COMMAND_LENGTH];
+} Command;
 
 int getCommandSize(char* command);
 void initializeKCDProcess(void);

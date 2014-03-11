@@ -19,12 +19,13 @@ int k_set_process_priority(int process_id, int priority); // sets process priori
 int k_get_process_priority(int process_id); // gets process priority
 void *k_receive_message(int *sender_id); // blocking receive, if message waiting return envelope to caller
 int k_send_message(int process_id, void *message_envelope); // send message to specified process
+int k_delayed_send(int process_id, void *message_envelope, int delay); // message sent to process_id after delay
 
 // non-blocking and non-preemptive primitives
 void* nonBlockingReceiveMessage(int, int*); // non-blocking receive, returns NULL if there are no messages waiting
-int nonPreemptiveSendMessage(int, void*); // sends the message to the specified process, does not preempt the sending process
+int nonPreemptiveSendMessage(int, int, void*); // sends the message to the specified process, does not preempt the sending process
 
-int deliverMessage(int, int, void*, int); // adds the envelope to the message queue of the specified destination process
+int deliverMessage(int, int, int, void*, int); // adds the envelope to the message queue of the specified destination process
 int handleMemoryRelease(int); // handles a release memory block event, prempts if specified
 int process_switch(void); // takes in process id to allow iprocesses to override the scheduler
 

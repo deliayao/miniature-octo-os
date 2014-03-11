@@ -10,9 +10,8 @@
 #include "Polling/uart_polling.h"
 #include "usr_proc.h"
 
-#ifdef DEBUG_0
 #include "printf.h"
-#endif /* DEBUG_0 */
+
 
 /* --Definition-- */
 #define NUM_BLOCK 40
@@ -66,7 +65,27 @@ void set_test_procs() {
 
 
 void proc1(void) {
+    Letter* message;
+    Letter* received;
+    int i;
+    
     while(1) {
+        message = (Letter*)request_memory_block();
+        message->m_Type = KCD_REG;
+        message->m_Text[0] = '%';
+        message->m_Text[1] = 'V';
+        message->m_Text[2] = 'I';
+        message->m_Text[3] = '\0';
+        
+        send_message(KCD_PROCESS, (void*)message);
+        
+        received = (Letter*)receive_message(NULL);
+        for (i = 0; received->m_Text[i] != '\0'; i++) {
+            printf("%c", received->m_Text[i]);
+        }
+        
+        release_memory_block((void*)received);
+        
 		release_processor();
 	}
 

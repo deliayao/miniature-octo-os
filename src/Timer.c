@@ -96,10 +96,6 @@ uint32_t timer_init(uint8_t n_timer)
 	return 0;
 }
 
-int k_delayed_send(int process_id, void *message_envelope, int delay) {
-    return deliverMessage(process_id, TIMER_IPROCESS, message_envelope, delay);
-}
-
 void initializeTimerProcess() {
     initializeMessageQueue(&centralMailbox);
 	timerProcess.m_pid = (U32)TIMER_IPROCESS;
@@ -148,7 +144,7 @@ void c_TIMER0_IRQHandler(void) {
     // send all expired mail
     while (centralMailbox.m_First != NULL && centralMailbox.m_First->m_Expiry <= g_timer_count) {
         envelope = dequeueEnvelope(&centralMailbox);
-        nonPreemptiveSendMessage(envelope->m_DestinationPID, (void *)((U32)envelope + sizeof(Envelope)));
+        nonPreemptiveSendMessage(envelope->m_SenderPID, envelope->m_DestinationPID, (void *)((U32)envelope + sizeof(Envelope)));
     }
     
     __enable_irq();

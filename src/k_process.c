@@ -228,9 +228,13 @@ int k_get_process_priority(int process_id) {
 	return processTable[process_id]->m_Priority;
 }
 
+int k_delayed_send(int process_id, void *message_envelope, int delay) {
+    return deliverMessage(currentProcess->m_PID, process_id, TIMER_IPROCESS, message_envelope, delay);
+}
+
 int k_send_message(int process_id, void *message_envelope) {
     PCB* destination = processTable[process_id];
-    int result = deliverMessage(process_id, process_id, message_envelope, 0);
+    int result = deliverMessage(currentProcess->m_PID, process_id, process_id, message_envelope, 0);
     
     // if the destination process is blocked on receive, unblock it
     if (destination->m_State == BLOCKED_RECEIVE) {
@@ -262,7 +266,7 @@ void *k_receive_message(int *sender_id) {
 	return (void*)((U32)envelope + sizeof(Envelope)); // return the envelope offset by the size of Envelope
 }
 
-int deliverMessage(int envelopeDestinationProcess, int destinationProcess, void* message, int delay) {
+int deliverMessage(int sourceProcess, int envelopeDestinationProcess, int destinationProcess, void* message, int delay) {
     Envelope* envelope;
     PCB* destination = processTable[destinationProcess];
 	U32 node = (U32)message - sizeof(Envelope) - sizeof(Node); // for error checking
@@ -274,7 +278,7 @@ int deliverMessage(int envelopeDestinationProcess, int destinationProcess, void*
 	node += sizeof(Node);
 	envelope = (Envelope*)node;
 	envelope->m_DestinationPID = envelopeDestinationProcess;
-	envelope->m_SenderPID = currentProcess->m_PID;
+	envelope->m_SenderPID = sourceProcess;
 	envelope->m_Expiry = g_timer_count + delay;
     
     return enqueueEnvelope(&(destination->m_Mailbox), envelope);
@@ -303,9 +307,9 @@ void* nonBlockingReceiveMessage(int receiverID, int *senderIDOutput) {
     return (envelope == NULL) ? (void*)envelope : (void*)((U32)envelope + sizeof(Envelope)); // return the envelope offset by the size of Envelope
 }
 
-int nonPreemptiveSendMessage(int destinationID, void* message) {
+int nonPreemptiveSendMessage(int sourceID, int destinationID, void* message) {
     PCB* destination = processTable[destinationID];
-    int result = deliverMessage(destinationID, destinationID, message, 0);
+    int result = deliverMessage(sourceID, destinationID, destinationID, message, 0);
     
     // if the destination process is blocked on receive, unblock it
     if (destination->m_State == BLOCKED_RECEIVE) {

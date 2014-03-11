@@ -3,7 +3,7 @@
  * @brief:  Implementation of system processes such as the null process, the CRT process, and the KCD process
  */
 
-#include "rtx.h"
+
 #include "SystemProcesses.h"
 #include <LPC17xx.h>
 #include "Polling/uart_polling.h"
@@ -63,14 +63,20 @@ void runCRTProcess(void) {
     }
 }
 
+void strCopy(char source[], char destination[]) {
+    int i;
+    
+    for (i = 0; source[i] != '\0'; i++) {
+        destination[i] = source[i];
+    }
+    destination[i] = source[i]; // null-terminated
+}
+
 
 //kcd process and helper functions
 
 // initialize the table with an array size of 10
-struct Command* table [COMMAND_TABLE_SIZE] =  {0}; //THIS COULD BE POTENTIALLY HAZARDOUS, HAVING COMMANDS SET TO 0 BY DEFAULT?
-
-//index used for searching & adding a command in to the kcd table 
-int index = 0;
+struct Command table [COMMAND_TABLE_SIZE]; //THIS COULD BE POTENTIALLY HAZARDOUS, HAVING COMMANDS SET TO 0 BY DEFAULT?
 
 void runKCDProcess(void) {
    
@@ -97,58 +103,58 @@ void runKCDProcess(void) {
         
     Letter* message;     
     int sender;
+    int i;
     char buffer[MAX_LETTER_LENGTH];
     clearBuffer(buffer, MAX_LETTER_LENGTH);
     
+    for (i = 0; i < COMMAND_TABLE_SIZE; i++) {
+        table[i].commandPID = -1;
+    }
     
     while(1) {
         message = (Letter*)receive_message(&sender);
-        if (message->m_Type == DEFAULT) { // message type is regular
-            if (sender == UART_IPROCESS) {
-                if (message->m_Text[0] == '!') { // placeholder for hot keys
-                    
-                    //insert hotkey handler here
-                    //might want to think about releasing the memory since we aren't sending to CRT
-                    
-                } else { // message contains a character from the console
-                        if (message->m_Text[0] == '\n') { //TODO: make sure this comparison works. Return character: check for command, clear buffer
-                            int process;
-                            send_message(CRT_PROCESS, message);
-                            process = getCommandProcess(buffer);
-                            if (process != -1) {
-                                int i;
-                                Letter* commandMessage = (Letter*)request_memory_block();
-                                commandMessage->m_Type = DEFAULT;
-                                for (i = 0; buffer[i] != '\0'; i++) {
-                                    commandMessage->m_Text[i] = buffer[i];
-                                }
-                                send_message(process, (void*)commandMessage);
-                            }
-                            clearBuffer(buffer, MAX_LETTER_LENGTH);
-                        } else { //normal character
-                            if (buffer[MAX_LETTER_LENGTH-2] == '\0'){ // We use -2 because we need to leave room for the enter key
-                                int i ;
-                                for (i = 0; i < MAX_LETTER_LENGTH-1; i++) {
-                                    if (buffer[i] == '\0') {
-                                        buffer[i] = message->m_Text[0];
-                                    }
-                                }
+        if (message->m_Type == DEFAULT && sender == UART_IPROCESS) { // message type is regular
+            if (message->m_Text[0] == '!') { // placeholder for hot keys
+                
+                //insert hotkey handler here
+                //might want to think about releasing the memory since we aren't sending to CRT
+                
+            } else { // message contains a character from the console
+                if (message->m_Text[0] == '\r') { //TODO: make sure this comparison works. Return character: check for command, clear buffer
+                    int process = getCommandProcess(buffer);
+                    message->m_Text[1] = '\n'; // append newline
+                    message->m_Text[2] = '\0'; // must be null-terminated
+                    send_message(CRT_PROCESS, (void*)message);
+                    if (process != -1) {
+                        Letter* commandMessage = (Letter*)request_memory_block();
+                        commandMessage->m_Type = DEFAULT;
+                        strCopy(buffer, commandMessage->m_Text);
+                        send_message(process, (void*)commandMessage);
+                    }
+                    clearBuffer(buffer, MAX_LETTER_LENGTH);
+                } else { //normal character
+                    if (buffer[MAX_LETTER_LENGTH - 2] == '\0'){ // We use -2 because we need to leave room for the null character
+                        int i ;
+                        for (i = 0; i < MAX_LETTER_LENGTH - 1; i++) {
+                            if (buffer[i] == '\0') {
+                                buffer[i] = message->m_Text[0];
+                                break;
                             }
                         }
-                }
-            } else { //user process, send text to crt
-                send_message(CRT_PROCESS, message);
-            }
-        } else if (message->m_Type == KCD_REG) { // register command
-            int n = getCommandSize(message->m_Text);
-            if(n > 1 && n <= MAX_COMMAND_LENGTH){  //can't be size one as there should be a character after %
-                if(!(message->m_Text[0] == '\0' || message->m_Text[0] != '%' || message->m_Text[1] == ' ')){
-                    message->m_Text[n] = ' ';   //add extra space at the end of the command 
-                    if(getCommandProcess(message->m_Text) == -1){
-                        addCommand(message->m_Text, sender);
+                        send_message(CRT_PROCESS, (void*)message);
                     }
                 }
             }
+        } else if (message->m_Type == KCD_REG) { // register command
+            int n = getCommandSize(message->m_Text);
+            if (n > 1 && n <= MAX_COMMAND_LENGTH && message->m_Text[0] == '%' && message->m_Text[1] != ' ') {  // can't be size one as there should be a character after %
+                message->m_Text[n] = ' ';   // add extra space at the end of the command 
+                message->m_Text[n + 1] = '\0';
+                if (getCommandProcess(message->m_Text) == -1) { // if command doesn't already exist, register it
+                    addCommand(message->m_Text, sender);
+                }
+            }
+            release_memory_block((void*)message);
         }
         release_processor();
     }
@@ -161,32 +167,33 @@ int getCommandSize(char* command){
     }
     return size;
 }
-void addCommand(char* mtext, int register_pid) {
-	struct Command* newCommand;
-	newCommand->commandPID = register_pid;
-    newCommand->commandText = mtext;
 
-	for(index = 0; index < COMMAND_TABLE_SIZE; index++){
-		if(table[index] == (Command *) NULL){
-			table[index] = newCommand;
-		}
+void addCommand(char text[], int registerPID) {
+    int i;
+
+	for(i = 0; i < COMMAND_TABLE_SIZE; i++) {
+        if (table[i].commandPID == -1) {
+            table[i].commandPID = registerPID;
+            strCopy(text, table[i].commandText);
+            break;
+        }
 	}
 }
 
 
-int getCommandProcess(char* buffer){
+int getCommandProcess(char buffer[]) {
     int i;
     int j;
     if(buffer[0] == '%') {
-        for(i = 0; table[i] != 0 && i < COMMAND_TABLE_SIZE; i++){
-            for (j = 0; table[i]->commandText[j] != '\0' && buffer[j] != '\0'; j++) {
-                if(table[i]->commandText[j] != buffer[j]){
+        for(i = 0; table[i].commandPID != -1 && i < COMMAND_TABLE_SIZE; i++) {
+            for (j = 0; table[i].commandText[j] != '\0' && buffer[j] != '\0'; j++) {
+                if(table[i].commandText[j] != buffer[j]) {
                     j = -1;
                     break;
                 }
             }
             if (j != -1) { //command must be valid
-                return table[i]->commandPID;
+                return table[i].commandPID;
             }
         }
     }

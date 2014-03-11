@@ -268,7 +268,7 @@ void c_UART0_IRQHandler(void)
             newLetter->m_Text[1] = '\0';
             
             // send the letter
-            nonPreemptiveSendMessage(KCD_PROCESS, (void*)newLetter);
+            nonPreemptiveSendMessage(UART_IPROCESS, KCD_PROCESS, (void*)newLetter);
         }
     } else if (IIR_IntId & IIR_THRE) { // transmission
         Letter* newLetter;
