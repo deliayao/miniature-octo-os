@@ -184,10 +184,10 @@ void addCommand(char text[], int registerPID) {
 int getCommandProcess(char buffer[]) {
     int i;
     int j;
-    if(buffer[0] == '%') {
-        for(i = 0; table[i].commandPID != -1 && i < COMMAND_TABLE_SIZE; i++) {
+    if (buffer[0] == '%') {
+        for (i = 0; table[i].commandPID != -1 && i < COMMAND_TABLE_SIZE; i++) {
             for (j = 0; table[i].commandText[j] != '\0' && buffer[j] != '\0'; j++) {
-                if(table[i].commandText[j] != buffer[j]) {
+                if (table[i].commandText[j] != buffer[j]) {
                     j = -1;
                     break;
                 }

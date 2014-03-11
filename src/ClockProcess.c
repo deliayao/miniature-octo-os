@@ -9,54 +9,54 @@
 
 #ifdef DEBUG_0
 #include "printf.h"
-#include <stdint.h>
-
 #endif /* DEBUG_0 */
 
 extern volatile uint32_t g_timer_count; // get the g_timer_count value
-PROC_INIT CLOCKProcess;
+PROC_INIT clockProcess;
 char* clockString; // the message to CRT
 uint32_t start;
 uint32_t end;
 uint32_t baseTime = 0;
 
 void initializeClockProcess(void) {
-	CLOCKProcess.m_pid = (U32)CLOCK_PROCESS;
-	CLOCKProcess.m_priority = HIGH;  // unsure.. but we know it is unprivileged level since it is a user process
-	CLOCKProcess.m_stack_size = 0x100;
-	CLOCKProcess.mpf_start_pc = &runClockProcess;
+	clockProcess.m_pid = (U32)CLOCK_PROCESS;
+	clockProcess.m_priority = HIGH;
+	clockProcess.m_stack_size = 0x100;
+	clockProcess.mpf_start_pc = &runClockProcess;
 }
 
-void runClockProcess(void){
+void runClockProcess(void) {
 	Letter* message; 
 	int sender;
 	
-	//register the command to kcd
-	Letter* msg_info = (Letter*)request_memory_block(); 	
-	msg_info->m_Type = KCD_REG;
-	msg_info->m_Text[0] = '%';
-	msg_info->m_Text[1] = 'W';
+	// register the command to kcd
+	Letter* registerCommand = (Letter*)request_memory_block(); 	
+	registerCommand->m_Type = KCD_REG;
+	registerCommand->m_Text[0] = '%';
+	registerCommand->m_Text[1] = 'W';
+    registerCommand->m_Text[2] = '\0';
 	
-	send_message(KCD_PROCESS, (void *)msg_info);
+	send_message(KCD_PROCESS, (void *)registerCommand);
 	
 	while(1) {
 		message = (Letter*)receive_message(&sender);
-		if(sender == KCD_PROCESS){
-			if(message->m_Text[2] == 'S'){
+		if (sender == KCD_PROCESS) {
+            // TODO: check size before accessing
+			if (message->m_Text[2] == 'S') {
 				setClock(message->m_Text);
-			}else if(message->m_Text[2] == 'R'){
+			} else if (message->m_Text[2] == 'R') {
 				resetClock();
 			}
 		}
 		//not sure if we can update the clock for more than 1 sec.... as it will try to receive a message after this if statement and if there is no message then it will get blocked
-		if(message->m_Text[2] != 'T'){
+		if (message->m_Text[2] != 'T') {
 			//if there is no terminate clock command then update the clock
 			updateClock();
 		}
 	}
 }
 
-void updateClock(){
+void updateClock() {
 	uint32_t hour;
 	uint32_t minute;
 	uint32_t second;
@@ -64,7 +64,7 @@ void updateClock(){
 	end = g_timer_count;
 	duration = (end - start);	// convert to second
 	
-	if((duration % 1000) == 0){ // update the baseTime every second
+	if((duration % 1000) == 0) { // update the baseTime every second
 		baseTime += 1;
 		// convert baseTime to HH:MM:SS formate
 		hour = baseTime/3600;
@@ -83,8 +83,7 @@ void updateClock(){
 	}
 }
 
-void messageToWallClock(void){
-	int i;
+void messageToWallClock(void) {
 	Letter* clockMessage;
 	clockMessage->m_Type = DEFAULT;
 	send_message(CLOCK_PROCESS, (void *)clockMessage);
@@ -100,7 +99,7 @@ void messageToCRT(void){
 	send_message(CRT_PROCESS, (void *)clockMessage);
 }
 	
-void resetClock(void){
+void resetClock(void) {
 	int i;
 	for(i = 0; i < CLOCK_STRING_LENGTH; i++){
 		if(i == 0 || i == 1 || i == 3 || i == 4 || i == 6 || i == 7 ){
@@ -114,9 +113,9 @@ void resetClock(void){
 	messageToCRT(); //send the 00:00:00 to CRT 
 }
 
-void setClock(char* m_Text){
+void setClock(char* m_Text) {
 	int i;
-	// check if the set clock is valid time (should be bettwen 00:00:00 and 24:59:59)
+	// check if the set clock is valid time (should be between 00:00:00 and 23:59:59)
 	if(m_Text[3] == ' ' 
 		&& m_Text[6] == ':' 
 		&& m_Text[7] >= '0' && m_Text[7] <= '5' 
@@ -124,7 +123,7 @@ void setClock(char* m_Text){
 		&& m_Text[9] == ':' 
 		&& m_Text[10] >= '0' && m_Text[10] <= '5'
 		&& m_Text[11] >= '0' && m_Text[11] <= '9'
-		&& ((m_Text[4] == '0' || m_Text[4] == '1') && (m_Text[5] >= '0' && m_Text[5] <= '9')) || (m_Text[4] == '2' && (m_Text[5] >= '0' && m_Text[5] <= '4'))){
+		&& ((m_Text[4] == '0' || m_Text[4] == '1') && (m_Text[5] >= '0' && m_Text[5] <= '9')) || (m_Text[4] == '2' && (m_Text[5] >= '0' && m_Text[5] <= '3'))) {
 
 			baseTime = ((m_Text[4] - '0')*10 + m_Text[5] - '0')*3600 + ((m_Text[7] - '0')*10 + m_Text[8] - '0')*60 + ((m_Text[10] - '0')*10 + m_Text[11] - '0');
 			
@@ -132,7 +131,7 @@ void setClock(char* m_Text){
 				clockString[i] = m_Text[i+4];
 			}
 	}
-	start = g_timer_count;	//set start time
-	messageToCRT(); //send the current clock to CRT 
+	start = g_timer_count;	// set start time
+	messageToCRT(); // send the current clock to CRT 
 }
 

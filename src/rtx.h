@@ -31,11 +31,11 @@
 #define PROCESS_B    					8
 #define PROCESS_C    					9
 #define PROCESS_SET_PRIORITY 	10
-#define CLOCK_PROCESS        	11
-#define KCD_PROCESS          	7
-#define CRT_PROCESS          	8
-#define TIMER_IPROCESS  			9
-#define UART_IPROCESS   			10
+#define CLOCK_PROCESS        	7
+#define KCD_PROCESS          	8
+#define CRT_PROCESS          	9
+#define TIMER_IPROCESS  			10
+#define UART_IPROCESS   			11
 
 // UART flags
 #define IER_RBR		0x01

@@ -30,6 +30,7 @@ PriorityQueue blockedOnMemoryQueue;
 PROC_INIT g_proc_table[NUM_PROCS];
 extern PROC_INIT g_test_procs[NUM_TEST_PROCS];
 extern PROC_INIT nullProcess;
+extern PROC_INIT clockProcess;
 extern PROC_INIT KCDProcess;
 extern PROC_INIT CRTProcess;
 extern PROC_INIT timerProcess;
@@ -46,6 +47,7 @@ void process_init() {
 	U32 *sp;
 
 	// initialize processes
+    initializeClockProcess();
 	initializeSystemProcesses();
     initializeTimerProcess();
     initializeUARTProcess();
@@ -56,6 +58,11 @@ void process_init() {
 	g_proc_table[NULL_PROCESS].m_priority = nullProcess.m_priority;
 	g_proc_table[NULL_PROCESS].m_stack_size = nullProcess.m_stack_size;
 	g_proc_table[NULL_PROCESS].mpf_start_pc = nullProcess.mpf_start_pc;
+    
+    g_proc_table[CLOCK_PROCESS].m_pid = clockProcess.m_pid;
+	g_proc_table[CLOCK_PROCESS].m_priority = clockProcess.m_priority;
+	g_proc_table[CLOCK_PROCESS].m_stack_size = clockProcess.m_stack_size;
+	g_proc_table[CLOCK_PROCESS].mpf_start_pc = clockProcess.mpf_start_pc;
     
     g_proc_table[KCD_PROCESS].m_pid = KCDProcess.m_pid;
 	g_proc_table[KCD_PROCESS].m_priority = KCDProcess.m_priority;
