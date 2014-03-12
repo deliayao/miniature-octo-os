@@ -20,7 +20,8 @@
 PROC_INIT g_test_procs[NUM_TEST_PROCS];
 
 int test[7] = {0};	//Flag for test cases 1 to 6
-int testMode = 1;  //The testMode to indicate which test case is running
+int testMode = 1;  //The testMode to indicate which test case is running. 1 is running and 0 is not
+
 
 void set_test_procs() {
 	int i;
@@ -47,7 +48,7 @@ void set_test_procs() {
 }
 
 /**
-* test cases:
+* test cases (RTX I):
 * test1: proc2 should be blocked when it tried to request more memoey after proc1 has all the memory
 * test2: proc2 unblocked here after releasing one memory from proc1 
 * test3: proc 1 shuld have the lowest proirity 
@@ -57,336 +58,257 @@ void set_test_procs() {
 */
 
 /**
- * @brief: a process that requests all the memory blocks 
- *         and then yields the cpu.
- *         It release one memory block
- *         and then yields the cpu.
+* test cases (RTX II):
+* test1: proc1 should be blocked when it tried to received the message but there is no message to be sent to proc1
+* test2: 
+* test3: 
+* test4: 
+* test5: 
+* test6: 
+*/
+
+/**
+ * @brief: the proc1 tried to received the message. 
  */
 
 
 void proc1(void) {
-    Letter* message;
-    Letter* received;
-    int i;
-    
-    while(1) {
-        message = (Letter*)request_memory_block();
-        message->m_Type = KCD_REG;
-        message->m_Text[0] = '%';
-        message->m_Text[1] = 'V';
-        message->m_Text[2] = 'I';
-        message->m_Text[3] = '\0';
-        
-        send_message(KCD_PROCESS, (void*)message);
-        
-        received = (Letter*)receive_message(NULL);
-        for (i = 0; received->m_Text[i] != '\0'; i++) {
-            printf("%c", received->m_Text[i]);
-        }
-        
-        release_memory_block((void*)received);
-        
-		release_processor();
+	Letter* received;
+
+	while(1) {
+		
+		if(testMode){
+			test[1]++;	//test1 is 1
+		}
+		
+		received = (Letter*)receive_message(NULL);
+		//this should be blocked here
+
+		if(testMode && test[1] != 0){
+			test[1] = -1000;	//test1 fails
+		}
 	}
-
-// 	Letter* msg_info = (Letter*)request_memory_block();
-// 	msg_info->m_Type = DEFAULT;// the process sends the general purpose message
-// 	msg_info->m_Text[0] = 'e';
-// 	//msg_info->m_Text[1] = 'v';
-// 	//msg_info->m_Text[2] = 'a';
-// 	
-// 	delayed_send(PROCESS_2, (void *)msg_info, 100);
-// 	
-// 	release_processor();
-// 	
-// 	release_memory_block(msg_info);
-// 	
-// 	release_processor();
-	
-	
-	
-	/*int i;
-	void* mem_ptr;
-	
-	uart0_put_string("\n\r");
-	uart0_put_string("G006_test: START\n\r");
-	uart0_put_string("G006_test: total 6 tests\n\r");
-		while(1){
-		for(i = 0; i < NUM_BLOCK; i ++) {
-			mem_ptr = request_memory_block();
-		}	
-		release_processor();
-
-		if(testMode == 1){
-			if(test[1] != -1000 ){
-				uart0_put_string("G006_test: test 1 OK\n\r");
-				test[1] = 0;	//test1 PASS
-			}else{
-				uart0_put_string("G006_test: test 1 FAIL\n\r");
-			}
-			test[2]++;	//test2 starts and it increases to 1
-			testMode = 2;
-		}
-
-		release_memory_block(mem_ptr);
-		set_process_priority(1,3);
-		
-		release_processor();
-		
-		if(testMode == 4){
-			test[4] = -1000;	//test4 FAIL
-		}
-	}*/
 }
 
 
 /**
- * @brief: a process that requests all the memory blocks 
- *         and then yields the cpu.
+ * @brief: the proc2 sent the command registration to KCD 
  */
 
 void proc2(void){
+	Letter* message;
+	Letter* received;
+	int sender;
+	int i;
+		
 	while(1) {
-		release_processor();
-	}
-// 	Letter* msg_info = (Letter*)request_memory_block();
-// 	msg_info->m_Type = KCD_REG;
-// 	msg_info->m_Text[0] = '%';
-// 	msg_info->m_Text[1] = 'W';
-// 	msg_info->m_Text[2] = 'S';
-// 	msg_info->m_Text[3] = ' ';
-// 	msg_info->m_Text[4] = '1';
-// 	msg_info->m_Text[5] = '2';
-// 	msg_info->m_Text[6] = ':';
-// 	msg_info->m_Text[7] = '4';
-// 	msg_info->m_Text[8] = '5';
-// 	msg_info->m_Text[9] = ':';
-// 	msg_info->m_Text[10] = '0';
-// 	msg_info->m_Text[11] = '0';
-// 	
-// 	delayed_send(KCD_PROCESS, (void*)msg_info, 100);
-
-// 	release_processor();
-// 	
-// 	release_memory_block(msg_info);
-// 	
-// 	release_processor();
-	
-	
-	
-/*	void* mem_ptr;
-	while(1){
-
-		if(testMode == 2){
-			test[2] = -1000;	//test2 FAIL
-		}
-
-		//request for one memory blcok
-		mem_ptr = request_memory_block();
-
-		if(testMode == 1){
-			test[1] = -1000;	//test1 FAIL
-		}
 		
-		//print result of test2: proc2 unblocked here after releasing all the memory from proc1
-		if(testMode == 2){
-			if(test[2] != -1000){
-				uart0_put_string("G006_test: test 2 OK\n\r");
-				test[2] = 0;	//test2 PASS
-			}else{
-				uart0_put_string("G006_test: test 2 FAIL\n\r");
+		if(testMode && test[4] != 0){
+			test[4]++;	//test4 is 2
+		}
+
+		message = (Letter*)request_memory_block();
+		message->m_Type = KCD_REG;
+		message->m_Text[0] = '%';
+		message->m_Text[1] = 'V';
+		message->m_Text[2] = 'I';
+		message->m_Text[3] = '\0';
+		
+		if(testMode)	test[2]++;	//test2 is 1
+		send_message(KCD_PROCESS, (void*)message);
+		release_processor();
+		
+		received = (Letter*)receive_message(&sender); // get block at first time when proc2 tried to receive the message
+																									// will get unblocked if the proc3 send the message to the proc2
+		
+		if(testMode){
+			if(sender != PROCESS_3) {
+				test[2] = -1000;	//test2 fails
 			}
-			test[3]++;	//test3 starts
-			testMode = 3;
-		}	
+			
+			if(received->m_Text[0] == 'H' && received->m_Text[1] == 'i' && received->m_Text[2] == '\0') {
+				test[3]++;			//test3 is 1	
+			}else{
+				test[3] = -1000;	//test3 fails
+			}
+		}
+		
+		set_process_priority(PROCESS_2,LOWEST);	//set the process 2 to the medium priority so the process 3 will start running
 		
 		release_processor();
+
 	}
-	*/
 }
 
 
 /**
- * @brief: a process that requests NUM_BLOCK - 5  memory blocks 
- *         and then yields the cpu.
- *         It release one memory block
- *         and then yields the cpu.
+ * @brief:
  */
 
 void proc3(void){
-    while(1) {
+	Letter* message;
+	Letter* received;
+	int sender;
+		
+	while(1) {
+		
+		message = (Letter*)request_memory_block();
+		message->m_Type = DEFAULT;
+		message->m_Text[0] = 'H';
+		message->m_Text[1] = 'i';
+		message->m_Text[2] = '\0';
+		
+		if(testMode)	test[3]++;	//test3 is 2
+		send_message(PROCESS_2, (void*)message);	
+		release_processor();	//goes to proc2
+		
+		//get a message from proc4
+		received = (Letter*)receive_message(&sender);	
+		test[3] = 100;	
+		//printf("got block\n");
+		
+		//printf("delayed for 3 seconds\n");
+		if(testMode){
+			if(sender != PROCESS_4){
+				test[3] = -1000;	//test3 fails
+			}
+			
+			if(testMode){
+				test[4]++;	//test4 is 
+			} else {
+				test[4] = -1000;	//test4 fails
+			}
+		}
+		
+		release_memory_block((void*)message);
+		set_process_priority(PROCESS_3, LOWEST);
 		release_processor();
 	}
-// 	int array_size = NUM_BLOCK - 5;
-// 	void* mem_ptr;
-// 	int i;
-// 	while(1){
-// 		
-// 		//test3: proc 1 has lowest proirity
-// 		if(testMode == 3){
-// 			if(get_process_priority(1) == 3){
-// 				uart0_put_string("G006_test: test 3 OK\n\r");
-// 				test[3] = 0;	//test3 PASS
-// 			}else{
-// 				uart0_put_string("G006_test: test 3 FAIL\n\r");
-// 				test[3] = -1000;	//test3 FAIL
-// 			}
-// 			test[4]++;	//test3 starts
-// 			testMode = 4;
-// 		}
-// 		
-// 		//test4: the next priority proc3 is ready to run
-// 		if(testMode == 4){
-// 			if(test[4] != -1000){
-// 				uart0_put_string("G006_test: test 4 OK\n\r");
-// 				test[4] = 0;	//test4 PASS
-// 			}else{
-// 				uart0_put_string("G006_test: test 4 FAIL\n\r");
-// 				test[4] = -1000;	//test4 FAIL
-// 			}
-// 			test[5]++;	//test5 starts
-// 			testMode = 5;
-// 		}
-// 		
-// 		for(i = 0; i < array_size; i++){
-// 			mem_ptr = request_memory_block();
-// 		}
-
-// 		release_processor();
-// 				release_memory_block(mem_ptr);
-
-// 		release_processor();
-// 	}
 }
 
 
 /**
- * @brief: a process that counts from 0 to 1000 
- *         and then yields the cpu.
- *         It request one memory block
- *         and then yields the cpu.
+ * @brief: 
  */
 
 void proc4(void){
-    while(1) {
-		release_processor();
-	}
-// 	int i = 0;
-// 	void* mem_ptr;
-//   	while (1) {
-// 		
-// 		//delay 1000
-// 		while(i < 1000){
-// 			i++;
-// 		}
-// 		
-// 		release_processor();
-// 		
-// 		if(testMode == 5){
-// 			test[5] = 2;
-// 		}
-// 		
-// 		mem_ptr = request_memory_block();
+	Letter* message;
+	Letter* received;
+	int i, j;
+	char c = 'a';
+	
+	while(1) {
+		
+		message = (Letter*)request_memory_block();
+		message->m_Type = DEFAULT;
+		for(i = 0; i < 26; i ++){
+				message->m_Text[i] = 65 + i;
+				printf("%c\n\r", message->m_Text[i]);
+		}
 
-// 		if(testMode == 5){
-// 			test[5] = -1000;
-// 		}
-// 		
-// 		release_processor();	
-// 		
-// 	}
+		if(testMode)	test[5]++;	//test5 is 1
+		
+		for(i = 0; i < 3; i++){
+			printf("%c\n\r", c+i);	//printing abc
+		}
+
+		delayed_send(PROCESS_3, (void *)message, 3000);
+		//testMode is 1
+		j=0;
+		while(test[3] != 100){	//if test3 didn't fail in proc3 then this loop is terminated when it comes back to proc4
+			j++;
+			if(test[3] == -1000)	break;	//test3 fails
+		}
+		
+		printf("%c\n\r", c+i);	//printing d
+		if(testMode == 1 && i == 3){
+			test[5]++;
+		}else{
+			test[5] = -1000;
+		}
+		
+		delayed_send(PROCESS_5, (void *)message, 1000);
+		//block proc4
+		received = (Letter*)receive_message(NULL);
+	}
 }
 
 
 /**
- * @brief: a process that requests 10 memory blocks 
- *         and then yields the cpu.
- *         It release 10 memory blocks
- *         and then yields the cpu.
+ * @brief: 
  */
 
 void proc5(void){
-    while(1) {
-		release_processor();
+	Letter* received;
+	void* mem_ptr;
+	
+	while(1) {
+		received = (Letter*)receive_message(NULL);
+		
+		if(testMode){
+			test[6]++;	//test6 is initiated and increased to 1
+		}
+		
+		release_memory_block((void*)received);
+		
+		//block proc5
+		while(testMode){
+			mem_ptr = request_memory_block();
+		}
+		test[6] = -1000;
 	}
-// 	int i;
-// 	void* mem_ptr[10];
-// 	while(1) {
-
-// 		//test5: proc4 gets blocked so that the next priority proc5 runs
-// 		if(testMode == 5){
-// 			if(test[5] == 2){
-// 				uart0_put_string("G006_test: test 5 OK\n\r");
-// 				test[5] = 0;	//test5 PASS
-// 			}else{
-// 				uart0_put_string("G006_test: test 5 FAIL\n\r");
-// 			}
-// 			test[6]++;	//test6 starts
-// 			testMode = 6;
-// 		}
-
-// 		for(i = 0; i < 10; i ++) {
-// 			//request 10 memory blocks
-// 			mem_ptr[i] = request_memory_block();
-// 		}
-
-// 		if(testMode == 6){
-// 			test[6] = -1000;	//test6 FAIL
-// 		}
-
-// 		release_processor();
-// 		
-// 		for(i = 0; i < 10; i ++) {
-// 			if(mem_ptr[i] != NULL) {
-// 				release_memory_block(mem_ptr[i]);
-// 			}
-// 		}	 
-// 	
-// 		release_processor();
-// 	}
 }
 
 
 /**
- * @brief: a process that only prints the result of test in the end
+ * @brief: 
  */
 
 void proc6(void){
-    while(1) {
-		release_processor();
-	}
-// 	int fail = 0;
-// 	int pass;
-// 	int i;
-// 	
-// 	while(1) {
-// 		if(testMode == 6){
-// 			if(test[6] != -1000){
-// 				uart0_put_string("G006_test: test 6 OK\n\r");
-// 				test[6] = 0;	//test6 PASS
-// 			}else{
-// 				uart0_put_string("G006_test: test 6 FAIL\n\r");
-// 			}
-// 			
-// 			for(i = 1; i < 7 ; ++i){
-// 				if(test[i] != 0){
-// 					fail++;
-// 				}
-// 			}
-// 			pass = 6 - fail;
-// 			
-// 			uart0_put_string("G006_test: ");
-// 			uart0_put_char('0' + pass);
-// 			uart0_put_string("/6 tests OK\n\r");
-// 			
-// 			uart0_put_string("G006_test: ");
-// 			uart0_put_char('0' + fail);
-// 			uart0_put_string("/6 tests FAIL\n\r");
-// 			
-// 			uart0_put_string("G006_test: END\n\r");
-// 			testMode = 0;  // no more testing	
-// 		}
+	int fail = 0;
+	int pass;
+	int i;
+	
+	while(1) {
+		
+		while(testMode){
+			i++;
+			if(test[6] > 0)	break;	//if delay send to proc5 succeeded then test[6] is 1 so that it breaks the loop
+		}
+		
+		if(testMode) {
+			uart0_put_string("\n\r");
+			uart0_put_string("G006_test: START\n\r");
+			uart0_put_string("G006_test: total 6 tests\n\r");
+			
+			for(i = 1; i < 7 ; ++i){
+				if(test[i] <= 0){
+					fail++;
+					uart0_put_string("G006_test: test");
+					uart0_put_char('0' + i);
+					uart0_put_string(" FAIL\n\r");
+				}else{
+					uart0_put_string("G006_test: test");
+					uart0_put_char('0' + i);
+					uart0_put_string(" OK\n\r");
+				}
+			}
+		
+			pass = 6 - fail;
+			uart0_put_string("G006_test: ");
+			uart0_put_char('0' + pass);
+			uart0_put_string("/6 tests OK\n\r");
+		
+			uart0_put_string("G006_test: ");
+			uart0_put_char('0' + fail);
+			uart0_put_string("/6 tests FAIL\n\r");
+		
+			uart0_put_string("G006_test: END\n\r");
+			
+			testMode = 0;  // no more testing	
+		}
+			
+			release_processor();
+		}
 
-// 		release_processor();
-// 	}
 }
