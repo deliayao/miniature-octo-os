@@ -126,6 +126,8 @@ void c_TIMER0_IRQHandler(void) {
     void* newMessage;
     Envelope* envelope;
     
+    int flag = 0;
+    
     __disable_irq();
 	/* acknowledge interrupt, see section  21.6.1 on pg 493 of LPC17XX_UM */
 	LPC_TIM0->IR = BIT(0);  
@@ -143,11 +145,16 @@ void c_TIMER0_IRQHandler(void) {
         
     // send all expired mail
     while (centralMailbox.m_First != NULL && centralMailbox.m_First->m_Expiry <= g_timer_count) {
+        flag = 1;
         envelope = dequeueEnvelope(&centralMailbox);
         nonPreemptiveSendMessage(envelope->m_SenderPID, envelope->m_DestinationPID, (void *)((U32)envelope + sizeof(Envelope)));
     }
     
     __enable_irq();
-    k_release_processor();
+    
+    if (flag == 1) {
+        k_release_processor();
+    }
+    
 }
 

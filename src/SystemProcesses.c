@@ -3,19 +3,20 @@
  * @brief:  Implementation of system processes such as the null process, the CRT process, and the KCD process
  */
 
-
 #include "SystemProcesses.h"
-#include <LPC17xx.h>
+
+#include "Utilities/String.h"
 #include "Polling/uart_polling.h"
 
+#include <LPC17xx.h>
 
+//#ifdef DEBUG_0
 #include "printf.h"
-
+//#endif /* DEBUG_0 */
 
 PROC_INIT nullProcess;
 PROC_INIT CRTProcess;
 PROC_INIT KCDProcess;
-
 
 void initializeSystemProcesses() {
     initializeNullProcess();
@@ -40,7 +41,7 @@ void initializeCRTProcess(void) {
 void initializeKCDProcess(void) {
     KCDProcess.m_pid = (U32)KCD_PROCESS;
 	KCDProcess.m_priority = PRIVILEGED;
-	KCDProcess.m_stack_size = 0x100;
+	KCDProcess.m_stack_size = 0x200;
 	KCDProcess.mpf_start_pc = &runKCDProcess;
 }
 
@@ -58,25 +59,23 @@ void runCRTProcess(void) {
     while (1) {
         message = receive_message(NULL);
         send_message(UART_IPROCESS, message);
+//         __disable_irq();
+//         printf("turning on interrupt");
+//         __enable_irq();
         pUart->IER = IER_THRE | IER_RLS | IER_RBR;
-			  release_processor();
+//         __disable_irq();
+//         printf("turned on interrupt");
+//         __enable_irq();
+		release_processor();
     }
 }
-
-void strCopy(char source[], char destination[]) {
-    int i;
-    
-    for (i = 0; source[i] != '\0'; i++) {
-        destination[i] = source[i];
-    }
-    destination[i] = source[i]; // null-terminated
-}
-
 
 //kcd process and helper functions
 
-// initialize the table with an array size of 10
-struct Command table [COMMAND_TABLE_SIZE]; //THIS COULD BE POTENTIALLY HAZARDOUS, HAVING COMMANDS SET TO 0 BY DEFAULT?
+// initialize the commandTable with an array size of 10
+Command commandTable [COMMAND_TABLE_SIZE];
+char inputBuffer[MAX_LETTER_LENGTH];
+int bufferIndex; // the next index in the buffer that we should be writing into
 
 void runKCDProcess(void) {
    
@@ -104,11 +103,12 @@ void runKCDProcess(void) {
     Letter* message;     
     int sender;
     int i;
-    char buffer[MAX_LETTER_LENGTH];
-    clearBuffer(buffer, MAX_LETTER_LENGTH);
     
+    clearBuffer();
+    
+    // initialize command table
     for (i = 0; i < COMMAND_TABLE_SIZE; i++) {
-        table[i].commandPID = -1;
+        commandTable[i].commandPID = -1;
     }
     
     while(1) {
@@ -120,33 +120,33 @@ void runKCDProcess(void) {
                 //might want to think about releasing the memory since we aren't sending to CRT
                 
             } else { // message contains a character from the console
-                if (message->m_Text[0] == '\r') { //TODO: make sure this comparison works. Return character: check for command, clear buffer
-                    int process = getCommandProcess(buffer);
+                if (message->m_Text[0] == '\r') { // return character: check for command, clear buffer
+                    int process = getCommandProcess(inputBuffer);
                     message->m_Text[1] = '\n'; // append newline
                     message->m_Text[2] = '\0'; // must be null-terminated
-                    send_message(CRT_PROCESS, (void*)message);
+                    //send_message(CRT_PROCESS, (void*)message);
                     if (process != -1) {
                         Letter* commandMessage = (Letter*)request_memory_block();
                         commandMessage->m_Type = DEFAULT;
-                        strCopy(buffer, commandMessage->m_Text);
+                        strcpy(inputBuffer, commandMessage->m_Text);
                         send_message(process, (void*)commandMessage);
+//                         __disable_irq();
+//         printf("hello");
+//         __enable_irq();
                     }
-                    clearBuffer(buffer, MAX_LETTER_LENGTH);
-                } else { //normal character
-                    if (buffer[MAX_LETTER_LENGTH - 2] == '\0'){ // We use -2 because we need to leave room for the null character
-                        int i ;
-                        for (i = 0; i < MAX_LETTER_LENGTH - 1; i++) {
-                            if (buffer[i] == '\0') {
-                                buffer[i] = message->m_Text[0];
-                                break;
-                            }
-                        }
+                    clearBuffer();
+                } else if (message->m_Text[0] == 0x7F) { // backspace
+                    deleteFromBuffer();
+                    send_message(CRT_PROCESS, (void*)message);
+                } else { // normal character
+                    if (inputBuffer[MAX_LETTER_LENGTH - 2] == '\0'){ // we use -2 because we need to leave room for the null character
+                        writeToBuffer(message->m_Text[0]);
                         send_message(CRT_PROCESS, (void*)message);
                     }
                 }
             }
         } else if (message->m_Type == KCD_REG) { // register command
-            int n = getCommandSize(message->m_Text);
+            int n = strlen(message->m_Text);
             if (n > 1 && n <= MAX_COMMAND_LENGTH && message->m_Text[0] == '%' && message->m_Text[1] != ' ') {  // can't be size one as there should be a character after %
                 message->m_Text[n] = ' ';   // add extra space at the end of the command 
                 message->m_Text[n + 1] = '\0';
@@ -160,21 +160,13 @@ void runKCDProcess(void) {
     }
 }
 
-int getCommandSize(char* command){
-    int size = 0;
-    while(command[size] != '\0'){
-        size++;
-    }
-    return size;
-}
-
 void addCommand(char text[], int registerPID) {
     int i;
 
 	for(i = 0; i < COMMAND_TABLE_SIZE; i++) {
-        if (table[i].commandPID == -1) {
-            table[i].commandPID = registerPID;
-            strCopy(text, table[i].commandText);
+        if (commandTable[i].commandPID == -1) {
+            commandTable[i].commandPID = registerPID;
+            strcpy(text, commandTable[i].commandText);
             break;
         }
 	}
@@ -185,15 +177,15 @@ int getCommandProcess(char buffer[]) {
     int i;
     int j;
     if (buffer[0] == '%') {
-        for (i = 0; table[i].commandPID != -1 && i < COMMAND_TABLE_SIZE; i++) {
-            for (j = 0; table[i].commandText[j] != '\0' && buffer[j] != '\0'; j++) {
-                if (table[i].commandText[j] != buffer[j]) {
+        for (i = 0; commandTable[i].commandPID != -1 && i < COMMAND_TABLE_SIZE; i++) {
+            for (j = 0; commandTable[i].commandText[j] != '\0' && buffer[j] != '\0'; j++) {
+                if (commandTable[i].commandText[j] != buffer[j]) {
                     j = -1;
                     break;
                 }
             }
             if (j != -1) { //command must be valid
-                return table[i].commandPID;
+                return commandTable[i].commandPID;
             }
         }
     }
@@ -201,14 +193,26 @@ int getCommandProcess(char buffer[]) {
 	return -1; 
 }
 
-void  clearBuffer(char* buffer, int n){
+void clearBuffer(void) {
     int i;
-    for (i = 0; i < n; i++){
-        buffer[i] = '\0';
+    for (i = 0; i < MAX_LETTER_LENGTH; i++) {
+        inputBuffer[i] = '\0';
+    }
+    bufferIndex = 0;
+}
+
+void writeToBuffer(char character) {
+    if (bufferIndex <= MAX_LETTER_LENGTH - 2) { // leave room for null character
+        inputBuffer[bufferIndex] = character;
+        bufferIndex++;
     }
 }
 
-
-
+void deleteFromBuffer(void) {
+    if (bufferIndex > 0) {
+        bufferIndex--;
+        inputBuffer[bufferIndex] = '\0';
+    }
+}
 
 

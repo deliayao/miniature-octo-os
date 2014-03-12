@@ -93,7 +93,7 @@ void *k_request_memory_block(void) {
 	printf("k_request_memory_block: entering...\n");
 #endif /* ! DEBUG_0 */
 
-	while (isEmptyMemoryQueue(&heap)) {
+	if (isEmptyMemoryQueue(&heap)) {
 		currentProcess->m_State = BLOCKED_MEM;
 		k_release_processor();
 	}

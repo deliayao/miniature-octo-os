@@ -14,7 +14,7 @@
 
 
 /* --Definition-- */
-#define NUM_BLOCK 40
+#define NUM_BLOCK 20
 
 /* initialization table item */
 PROC_INIT g_test_procs[NUM_TEST_PROCS];

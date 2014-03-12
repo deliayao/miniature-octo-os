@@ -174,6 +174,54 @@ int process_switch() {
 	}
 
 	return RTX_OK;
+    
+    /*
+    ProcessState state;
+    PCB *p_pcb_old = NULL;
+    
+    p_pcb_old = currentProcess;
+	currentProcess = scheduler();
+    
+    if ( currentProcess == NULL  ) {
+		currentProcess = p_pcb_old; // revert back to the old process
+		return RTX_ERR;
+	}
+    if ( p_pcb_old == NULL ) {
+		p_pcb_old = currentProcess;
+	}
+    
+    if (p_pcb_old->m_State == RUNNING) {
+        enqueueAtPriority(&readyQueue, p_pcb_old);
+    }
+
+	state = currentProcess->m_State;
+
+	if (state == NEW) {
+		if (currentProcess != p_pcb_old && p_pcb_old->m_State != NEW) {
+            if (p_pcb_old->m_State == RUNNING) {
+                p_pcb_old->m_State = READY;
+            }
+			p_pcb_old->m_ProcessSP = (U32 *) __get_MSP();
+		}
+		currentProcess->m_State = RUNNING;
+		__set_MSP((U32) currentProcess->m_ProcessSP);
+		__rte();  // pop exception stack frame from the stack for a new processes
+	} 
+
+	if (currentProcess != p_pcb_old) {
+		if (state == READY){ 		
+			if (p_pcb_old->m_State == RUNNING) {
+                p_pcb_old->m_State = READY;
+            }
+			p_pcb_old->m_ProcessSP = (U32 *) __get_MSP(); // save the old process's sp
+			currentProcess->m_State = RUNNING;
+			__set_MSP((U32) currentProcess->m_ProcessSP); //switch to the new proc's stack    
+		} else {
+			currentProcess = p_pcb_old; // revert back to the old proc on error
+			return RTX_ERR;
+		} 
+	}
+	return RTX_OK;*/
 }
 
 /**
@@ -260,7 +308,7 @@ int k_send_message(int process_id, void *message_envelope) {
 void *k_receive_message(int *sender_id) {
     Envelope * envelope;
     
-    while (isEmptyMessageQueue(&(currentProcess->m_Mailbox))) {
+    if (isEmptyMessageQueue(&(currentProcess->m_Mailbox))) {
 		currentProcess->m_State = BLOCKED_RECEIVE;
 		k_release_processor();
 	}
@@ -269,6 +317,11 @@ void *k_receive_message(int *sender_id) {
 	if (sender_id != NULL) {
 		*sender_id = envelope->m_SenderPID; // return ID of sender
 	}
+    
+    if (envelope->m_DestinationPID == 7) {
+        int i=0;
+        i++;
+    }
     
 	return (void*)((U32)envelope + sizeof(Envelope)); // return the envelope offset by the size of Envelope
 }

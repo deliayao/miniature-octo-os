@@ -24,15 +24,18 @@ void runKCDProcess(void);
 /* initialization table item */
 typedef struct Command {
    int commandPID;
-   char commandText[MAX_COMMAND_LENGTH];
+   char commandText[MAX_COMMAND_LENGTH + 2];
 } Command;
 
-int getCommandSize(char* command);
 void initializeKCDProcess(void);
 void kcd_proc(void);
 void addCommand(char* mtext, int register_pid);
 void checkMsgInfo(Letter* get_msginfo);
 int getCommandProcess(char* buffer); // check if buffer is a command, if it is return the process id, otherwise it returns -1
-void clearBuffer(char* buffer, int n); // 
+
+// buffer helper functions
+void clearBuffer(void); // sets all characters to null
+void writeToBuffer(char character); // appends a letter to the end of the buffer
+void deleteFromBuffer(void); // deletes the last character from the buffer
 
 #endif /* _SYSTEM_PROCESSES_ */
