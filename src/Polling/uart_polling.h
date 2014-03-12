@@ -27,10 +27,6 @@
                            Table 279, page 306, LPC17xxum.pdf v2
                          */
 
-#define uart0_get_char()    uart_get_char(0)
-#define uart0_put_char(c)   uart_put_char(0,c)
-#define uart0_put_string(s) uart_put_string(0,s)
-
 #define uart1_get_char()    uart_get_char(1)
 #define uart1_put_char(c)   uart_put_char(1,c)
 #define uart1_put_string(s) uart_put_string(1,s)

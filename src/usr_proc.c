@@ -10,11 +10,12 @@
 #include "Polling/uart_polling.h"
 #include "usr_proc.h"
 
+#ifdef DEBUG_0
 #include "printf.h"
-
+#endif /* ! DEBUG_0 */
 
 /* --Definition-- */
-#define NUM_BLOCK 20
+#define NUM_BLOCK 40
 
 /* initialization table item */
 PROC_INIT g_test_procs[NUM_TEST_PROCS];
@@ -196,20 +197,19 @@ void proc4(void){
 	Letter* received;
 	int i, j;
 	char c = 'a';
-	
+    
 	while(1) {
 		
 		message = (Letter*)request_memory_block();
 		message->m_Type = DEFAULT;
 		for(i = 0; i < 26; i ++){
 				message->m_Text[i] = 65 + i;
-				printf("%c\n\r", message->m_Text[i]);
 		}
 
 		if(testMode)	test[5]++;	//test5 is 1
 		
 		for(i = 0; i < 3; i++){
-			printf("%c\n\r", c+i);	//printing abc
+			//printf("%c\n\r", c+i);	//printing abc  // WHY ARE WE PRINTING WITH PRINTF.
 		}
 
 		delayed_send(PROCESS_3, (void *)message, 3000);
@@ -220,7 +220,7 @@ void proc4(void){
 			if(test[3] == -1000)	break;	//test3 fails
 		}
 		
-		printf("%c\n\r", c+i);	//printing d
+		//printf("%c\n\r", c+i);	//printing d    // SERIOUSLY WTF.
 		if(testMode == 1 && i == 3){
 			test[5]++;
 		}else{
@@ -241,7 +241,7 @@ void proc4(void){
 void proc5(void){
 	Letter* received;
 	void* mem_ptr;
-	
+    
 	while(1) {
 		received = (Letter*)receive_message(NULL);
 		
@@ -277,33 +277,33 @@ void proc6(void){
 		}
 		
 		if(testMode) {
-			uart0_put_string("\n\r");
-			uart0_put_string("G006_test: START\n\r");
-			uart0_put_string("G006_test: total 6 tests\n\r");
+			uart1_put_string("\n\r");
+			uart1_put_string("G006_test: START\n\r");
+			uart1_put_string("G006_test: total 6 tests\n\r");
 			
 			for(i = 1; i < 7 ; ++i){
 				if(test[i] <= 0){
 					fail++;
-					uart0_put_string("G006_test: test");
-					uart0_put_char('0' + i);
-					uart0_put_string(" FAIL\n\r");
+					uart1_put_string("G006_test: test");
+					uart1_put_char('0' + i);
+					uart1_put_string(" FAIL\n\r");
 				}else{
-					uart0_put_string("G006_test: test");
-					uart0_put_char('0' + i);
-					uart0_put_string(" OK\n\r");
+					uart1_put_string("G006_test: test");
+					uart1_put_char('0' + i);
+					uart1_put_string(" OK\n\r");
 				}
 			}
 		
 			pass = 6 - fail;
-			uart0_put_string("G006_test: ");
-			uart0_put_char('0' + pass);
-			uart0_put_string("/6 tests OK\n\r");
+			uart1_put_string("G006_test: ");
+			uart1_put_char('0' + pass);
+			uart1_put_string("/6 tests OK\n\r");
 		
-			uart0_put_string("G006_test: ");
-			uart0_put_char('0' + fail);
-			uart0_put_string("/6 tests FAIL\n\r");
+			uart1_put_string("G006_test: ");
+			uart1_put_char('0' + fail);
+			uart1_put_string("/6 tests FAIL\n\r");
 		
-			uart0_put_string("G006_test: END\n\r");
+			uart1_put_string("G006_test: END\n\r");
 			
 			testMode = 0;  // no more testing	
 		}
