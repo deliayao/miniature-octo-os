@@ -126,8 +126,10 @@ void runClockProcess(void) {
                     // reuse the letter from KCD (overwrite the text)
                     startRelay(message);
                 } else if (command == 'T') { // terminate
-                    isRunning = 0;
-                    ignoreNext = 1;
+                    if (isRunning) { // terminate only has an effect if the clock is actually running
+                        isRunning = 0;
+                        ignoreNext = 1;
+                    }
                     strcpy("\r\n", message->m_Text);
                     send_message(CRT_PROCESS, (void*)message);
                 }
