@@ -10,9 +10,9 @@
 
 #include <LPC17xx.h>
 
-//#ifdef DEBUG_0
+#ifdef DEBUG_0
 #include "printf.h"
-//#endif /* DEBUG_0 */
+#endif /* DEBUG_0 */
 
 PROC_INIT nullProcess;
 PROC_INIT CRTProcess;
@@ -41,7 +41,7 @@ void initializeCRTProcess(void) {
 void initializeKCDProcess(void) {
     KCDProcess.m_pid = (U32)KCD_PROCESS;
 	KCDProcess.m_priority = PRIVILEGED;
-	KCDProcess.m_stack_size = 0x200;
+	KCDProcess.m_stack_size = 0x100;
 	KCDProcess.mpf_start_pc = &runKCDProcess;
 }
 
@@ -59,13 +59,7 @@ void runCRTProcess(void) {
     while (1) {
         message = receive_message(NULL);
         send_message(UART_IPROCESS, message);
-//         __disable_irq();
-//         printf("turning on interrupt");
-//         __enable_irq();
         pUart->IER = IER_THRE | IER_RLS | IER_RBR;
-//         __disable_irq();
-//         printf("turned on interrupt");
-//         __enable_irq();
 		release_processor();
     }
 }
@@ -122,17 +116,12 @@ void runKCDProcess(void) {
             } else { // message contains a character from the console
                 if (message->m_Text[0] == '\r') { // return character: check for command, clear buffer
                     int process = getCommandProcess(inputBuffer);
-                    message->m_Text[1] = '\n'; // append newline
-                    message->m_Text[2] = '\0'; // must be null-terminated
-                    //send_message(CRT_PROCESS, (void*)message);
                     if (process != -1) {
-                        Letter* commandMessage = (Letter*)request_memory_block();
-                        commandMessage->m_Type = DEFAULT;
-                        strcpy(inputBuffer, commandMessage->m_Text);
-                        send_message(process, (void*)commandMessage);
-//                         __disable_irq();
-//         printf("hello");
-//         __enable_irq();
+                        strcpy(inputBuffer, message->m_Text);
+                        send_message(process, (void*)message);
+                    } else {
+                        strcpy("\r\n", message->m_Text); // append newline
+                        send_message(CRT_PROCESS, (void*)message);
                     }
                     clearBuffer();
                 } else if (message->m_Text[0] == 0x7F) { // backspace

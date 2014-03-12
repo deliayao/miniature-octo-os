@@ -5,6 +5,9 @@
 
 #include "MemoryQueue.h"
 
+int usedCount; // number of memory blocks currently in use
+int availableCount; // number of memory blocks currently free
+
 Node* initialFront = NULL;
 
 Node* dequeueNode(MemoryQueue* queue) {
@@ -17,6 +20,9 @@ Node* dequeueNode(MemoryQueue* queue) {
         if (queue->m_First == NULL) {
             queue->m_Last = NULL;
         }
+        
+        usedCount++;
+        availableCount--;
     }
 
     return front;
@@ -33,6 +39,9 @@ int enqueueNode(MemoryQueue* queue, Node* node) {
     }
 
     queue->m_Last = node;
+    
+    usedCount--;
+    availableCount++;
 
     // this function doesn't actually do any checks right now,
     // so the operation always succeeds
@@ -41,14 +50,14 @@ int enqueueNode(MemoryQueue* queue, Node* node) {
 
 void initializeMemoryQueue(MemoryQueue* queue, Node* first) {
     Node* currentNode;
-		Node* nextNode;
+	Node* nextNode;
 
-		// for pointer arithmetic
-		U32 nextNodeAddress;
+	// for pointer arithmetic
+	U32 nextNodeAddress;
 
     int i;
 
-		initialFront = first; // save initial beginning of heap
+	initialFront = first; // save initial beginning of heap
     currentNode = first;
 
     // partition heap memory into a linked list of equal sized nodes
@@ -64,6 +73,9 @@ void initializeMemoryQueue(MemoryQueue* queue, Node* first) {
 
     queue->m_First = first;
     queue->m_Last = currentNode;
+    
+    usedCount = 0;
+    availableCount = NUM_BLOCKS;
 }
 
 int isEmptyMemoryQueue(MemoryQueue* queue) {
@@ -71,23 +83,22 @@ int isEmptyMemoryQueue(MemoryQueue* queue) {
 }
 
 int isValidNode(MemoryQueue* queue, Node* node) {
-		Node* currentNode = queue->m_First;
+	Node* currentNode = queue->m_First;
 
     // convert pointers to integers for address comparisons
     U32 nodeAddress = (U32)node;
     U32 heapBeginAddress = (U32)initialFront;
 
-
     // check that nodeAddress is between the first and last node of the queue
     if (nodeAddress < heapBeginAddress || nodeAddress > heapBeginAddress + (NUM_BLOCKS - 1) * (sizeof(Node) + sizeof(Envelope) + BLOCK_SIZE)) {
         return 0;
     } else if ((nodeAddress - heapBeginAddress) % (sizeof(Node) + sizeof(Envelope) + BLOCK_SIZE) != 0) { // check that nodeAddress occurs at some integer multiple of sizeof(Node) + BLOCK_SIZE
-		    return 0;
-		}
+		return 0;
+	}
 
     while (currentNode != NULL) {
         if (currentNode == node) { // the specified node is already in the queue
-                return 0;
+            return 0;
         }
         currentNode = currentNode->m_Next;
 	}

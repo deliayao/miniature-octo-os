@@ -8,10 +8,12 @@
 
 #define CLOCK_STRING_LENGTH 8
 
-void initializeClockProcess(void); // initializes wall clock processes
+void initializeClockProcess(void); // initializes wall clock process
 void runClockProcess(void);
-void updateClock(void);
+
+// wall clock modifiers
 void resetClock(void); // reset the wall clock to "00:00:00"
-void setClock(char* mtext); // set the wall clock to mtext
+int setClock(char[]); // set the wall clock, returns the success of the operation
+void updateClock(void); // increments the wall clock by 1 second
 
 #endif /*  _CLOCK_PROCESS_ */

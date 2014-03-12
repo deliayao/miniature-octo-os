@@ -284,6 +284,7 @@ void c_UART0_IRQHandler(void)
             newLetter = (Letter*)nonBlockingReceiveMessage(UART_IPROCESS, NULL);
         }
         pUart->IER ^= IER_THRE; // toggle IER_THRE bit
+        pUart->THR = '\0';
     } else {  /* not implemented yet */
 #ifdef DEBUG_0
             uart1_put_string("Should not get here!\n\r");
