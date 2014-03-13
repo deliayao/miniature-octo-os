@@ -21,6 +21,8 @@ Node* dequeueNode(MemoryQueue* queue) {
             queue->m_Last = NULL;
         }
         
+        front->m_Next = NULL;
+        
         usedCount++;
         availableCount--;
     }

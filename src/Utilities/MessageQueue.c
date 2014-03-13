@@ -15,6 +15,8 @@ Envelope* dequeueEnvelope(MessageQueue* queue) {
         if (queue->m_First == NULL) {
             queue->m_Last = NULL;
         }
+        
+        front->m_Next = NULL;
     }
 
     return front;
