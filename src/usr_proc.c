@@ -257,31 +257,34 @@ void proc4(void) {
  * @brief: Process receives a message from Process 4
  *         and asserts Process 1's priority is HIGH before forwarding the message to Process 1.
  *         Then asserts Process 1's priority has changed to LOWEST.
+ *         Then tries to receive a message and blocks indefinitely.
  */
 void proc5(void) {
 	Letter* received;
     
 	while (1) {
-        if (testMode) {
-            // receive a message from Process 4
-            received = (Letter*)receive_message(NULL);
-            
-            if (get_process_priority(PROCESS_1) != HIGH) { // Process 1 should have been blocked this entire time
-                                                           // and not been able to change its priority
-                test[1] = -1000;
-            }
-            
-            // forward the message to Process 1
-            send_message(PROCESS_1, (void*)received); // this will preempt
-            
-            if (get_process_priority(PROCESS_1) != LOWEST) {
-                test[6] = -1000;
-            } else {
-                test[6]++; // if Process 1's priority was not HIGH at the beginning, test[6] will not be > 0
-            }
+        // receive a message from Process 4
+		received = (Letter*)receive_message(NULL);
+        
+        if (get_process_priority(PROCESS_1) != HIGH) { // Process 1 should have been blocked this entire time
+                                                       // and not been able to change its priority
+            test[1] = -1000;
         }
 		
-        release_processor();
+        // forward the message to Process 1
+        send_message(PROCESS_1, (void*)received); // this will preempt
+        
+        if (get_process_priority(PROCESS_1) != LOWEST) {
+            test[6] = -1000;
+        } else {
+            test[6]++; // if Process 1's priority was not HIGH at the beginning, test[6] will not be > 0
+        }
+		
+        // this will block
+		received = (Letter*)receive_message(NULL);
+        
+        // process should never reach this line
+		test[1] = -1000;
 	}
 }
 
