@@ -334,3 +334,30 @@ int nonPreemptiveSendMessage(int sourceID, int destinationID, void* message) {
     
     return result;
 }
+
+void serializeQueue(char debugInfo[], int start, int queueNumber){
+    int j = start;
+    if (queueNumber == 2) { // blocked on receive, special case
+        int i;
+        for ( i = 0; i < NUM_PROCS; i++ ) {
+            if (processTable[i]->m_State == BLOCKED_RECEIVE) {
+                debugInfo[j] = '(';
+                j++;
+                debugInfo[j] = processTable[i]->m_PID + '0';
+                j++;
+                debugInfo[j] = ',';
+                j++;
+                debugInfo[j] = processTable[i]->m_Priority + '0';
+                j++;
+                debugInfo[j] = ')';
+                j++;
+                debugInfo[j] = '\n';
+                j++;
+            }
+        }
+    } else { // any priority queued state
+        if (queueNumber >= 0 && queueNumber < QUEUED_STATES) {
+            serializePriorityQueue(masterPQs[queueNumber], debugInfo, j);
+        }
+    }
+}

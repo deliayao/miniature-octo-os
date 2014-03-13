@@ -18,4 +18,8 @@ void strcpy(char source[], char destination[]);
 // this function assumes that source[] is null-terminated
 int strlen(char source[]);
 
+// returns 1 if character 'find' is found in char[] 'source'
+// returns 0 otherwise
+int strcont(char source[], char find);
+
 #endif /* _STRING_ */

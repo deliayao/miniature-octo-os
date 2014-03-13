@@ -22,4 +22,7 @@ void initializeUARTProcess(void); // initializes the UART i-process
 int uart_irq_init(int n_uart); // initializes n_uart to use interrupts
 int uart_polling_init(int n_uart); // initializes n_uart to use polling
 
+//debug functions
+void hotkeyHandler(char hotkey); //takes in a hotkey and eventually prints debug information to uart1
+
 #endif /* ! UART_IRQ_H_ */

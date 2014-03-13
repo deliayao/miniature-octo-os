@@ -108,30 +108,23 @@ void runKCDProcess(void) {
     while(1) {
         message = (Letter*)receive_message(&sender);
         if (message->m_Type == DEFAULT && sender == UART_IPROCESS) { // message type is regular
-            if (message->m_Text[0] == '!') { // placeholder for hot keys
-                
-                //insert hotkey handler here
-                //might want to think about releasing the memory since we aren't sending to CRT
-                
-            } else { // message contains a character from the console
-                if (message->m_Text[0] == '\r') { // return character: check for command, clear buffer
-                    int process = getCommandProcess(inputBuffer);
-                    if (process != -1) {
-                        strcpy(inputBuffer, message->m_Text);
-                        send_message(process, (void*)message);
-                    } else {
-                        strcpy("\r\n", message->m_Text); // append newline
-                        send_message(CRT_PROCESS, (void*)message);
-                    }
-                    clearBuffer();
-                } else if (message->m_Text[0] == 0x7F) { // backspace
-                    deleteFromBuffer();
+            if (message->m_Text[0] == '\r') { // return character: check for command, clear buffer
+                int process = getCommandProcess(inputBuffer);
+                if (process != -1) {
+                    strcpy(inputBuffer, message->m_Text);
+                    send_message(process, (void*)message);
+                } else {
+                    strcpy("\r\n", message->m_Text); // append newline
                     send_message(CRT_PROCESS, (void*)message);
-                } else { // normal character
-                    if (inputBuffer[MAX_LETTER_LENGTH - 2] == '\0'){ // we use -2 because we need to leave room for the null character
-                        writeToBuffer(message->m_Text[0]);
-                        send_message(CRT_PROCESS, (void*)message);
-                    }
+                }
+                clearBuffer();
+            } else if (message->m_Text[0] == 0x7F) { // backspace
+                deleteFromBuffer();
+                send_message(CRT_PROCESS, (void*)message);
+            } else { // normal character
+                if (inputBuffer[MAX_LETTER_LENGTH - 2] == '\0'){ // we use -2 because we need to leave room for the null character
+                    writeToBuffer(message->m_Text[0]);
+                    send_message(CRT_PROCESS, (void*)message);
                 }
             }
         } else if (message->m_Type == KCD_REG) { // register command

@@ -5,16 +5,18 @@
  * @date: 2014/02/08
  */
 
-#include "uart.h"
+#include "UART.h"
 
 #include "k_process.h"
 #include "k_memory.h"
 #include "Polling/uart_polling.h"
 #include "printf.h"
+#include "Utilities/String.h"
 
 #include <LPC17xx.h>
 
 PROC_INIT UARTProcess; // for UART i-process PCB
+char hotkeys[3]={'~','!','@'};
 
 /**
  * @brief: initialize the n_uart
@@ -259,16 +261,22 @@ void c_UART0_IRQHandler(void)
         uart1_put_string("\n\r");
 #endif // DEBUG_0
         
-        // send a message to KCD containing the character
-        node = nonBlockingRequestMemory(); // request memory for message
-        if (node != NULL) {
-            newLetter = (Letter*)node;
-            newLetter->m_Type = DEFAULT;
-            newLetter->m_Text[0] = character;
-            newLetter->m_Text[1] = '\0';
-            
-            // send the letter
-            nonPreemptiveSendMessage(UART_IPROCESS, KCD_PROCESS, (void*)newLetter);
+        //check for hotkey
+        if (strcont(hotkeys, character)) { // placeholder for hot keys
+            hotkeyHandler(character);
+        } else {
+        
+            // send a message to KCD containing the character
+            node = nonBlockingRequestMemory(); // request memory for message
+            if (node != NULL) {
+                newLetter = (Letter*)node;
+                newLetter->m_Type = DEFAULT;
+                newLetter->m_Text[0] = character;
+                newLetter->m_Text[1] = '\0';
+                
+                // send the letter
+                nonPreemptiveSendMessage(UART_IPROCESS, KCD_PROCESS, (void*)newLetter);
+            }
         }
     } else if (IIR_IntId & IIR_THRE) { // transmission
         Letter* newLetter;
@@ -293,4 +301,78 @@ void c_UART0_IRQHandler(void)
     
     __enable_irq();
     k_release_processor();
+}
+
+void hotkeyHandler(char hotkey) {
+    
+    //We could either have kernel functions that serialize queues,
+    // or we could juts extern them haha
+    // or we could call functions that return reference or copies of them
+    int i;
+    int j = 0;
+    char* debugInfo;//4 chars for each process and 70 for additional characters, this is pretty arbitrary
+    debugInfo = (char*)nonBlockingRequestMemory(); 
+    
+    if (debugInfo != NULL) {
+        if (hotkey == hotkeys[0]) { //print ready queue processes and their priorities
+            debugInfo[0] = 'R';
+            debugInfo[1] = 'E';
+            debugInfo[2] = 'A';
+            debugInfo[3] = 'D';
+            debugInfo[4] = 'Y';
+            debugInfo[5] = ':';
+            debugInfo[6] = '\n';
+            j = 7;
+            serializeReadyQueue(debugInfo, j);
+        } else if (hotkey == hotkeys[1]) {  //print blocked on memory queue and their priorities
+            debugInfo[0] = 'B';
+            debugInfo[1] = 'L';
+            debugInfo[2] = 'O';
+            debugInfo[3] = 'C';
+            debugInfo[4] = 'K';
+            debugInfo[5] = 'E';
+            debugInfo[6] = 'D';
+            debugInfo[7] = ' ';
+            debugInfo[8] = 'M';
+            debugInfo[9] = 'E';
+            debugInfo[10] = 'M';
+            debugInfo[11] = ':';
+            debugInfo[12] = '\n';
+            j = 13;
+            serializeBlockedOnMemoryQueue(debugInfo, j);
+        } else if (hotkey == hotkeys[2]) {  //print blocked on receive processes and their priorities
+            debugInfo[0] = 'B';
+            debugInfo[1] = 'L';
+            debugInfo[2] = 'O';
+            debugInfo[3] = 'C';
+            debugInfo[4] = 'K';
+            debugInfo[5] = 'E';
+            debugInfo[6] = 'D';
+            debugInfo[7] = ' ';
+            debugInfo[8] = 'R';
+            debugInfo[9] = 'E';
+            debugInfo[10] = 'C';
+            debugInfo[11] = ' ';
+            debugInfo[12] = '(';
+            debugInfo[13] = 'P';
+            debugInfo[14] = 'R';
+            debugInfo[15] = 'O';
+            debugInfo[16] = 'C';
+            debugInfo[17] = ',';
+            debugInfo[18] = 'P';
+            debugInfo[19] = 'R';
+            debugInfo[20] = 'I';
+            debugInfo[21] = ')';
+            debugInfo[22] = ':';
+            debugInfo[23] = '\n';
+            j = 24;
+            serializeBlockedOnReceive(debugInfo, j);
+        }
+        
+        for (i=0; debugInfo[i] != '\0'; i++) {
+            uart1_put_char(debugInfo[i]);
+        }
+        nonPreemptiveReleaseMemory(debugInfo); //its okay to be in the 'if' because if we got NULL then it isn't a valid block anyways
+    }
+    j++; // GET ROID OF THIS JUST FOR DEBUGGIN
 }

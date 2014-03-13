@@ -77,3 +77,18 @@ PCB* removeProcess(ProcessQueue* queue, int processId) {
 int isIProcess(int processID) {
     return (processID == TIMER_IPROCESS || processID == UART_IPROCESS);
 }
+
+int serializeProcessQueue(ProcessQueue* queue, char message[], int startIndex) {
+    int j = startIndex;
+    PCB* currentProcess = queue->m_First;
+	
+	while (currentProcess != NULL) {
+        message[j] = currentProcess->m_PID + '0';
+        j++;
+        message[j] = ' ';
+        j++;
+        
+		currentProcess = currentProcess->m_Next;
+	}
+    return j;
+}

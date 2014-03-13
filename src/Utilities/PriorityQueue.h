@@ -40,4 +40,7 @@ int isEmptyPriorityQueue(PriorityQueue*);
 // returns the success/failure of the operation
 int updateProcessPriority(PriorityQueue*, int processId, int oldPriority, int newPriority);
 
+// serializes priorty queue by putting a string containing each process and its priority into the memory found at 'message,' writing to it starting at startIndex
+void serializePriorityQueue(PriorityQueue*, char [],  int startIndex);
+
 #endif /* _PRIORITY_QUEUE_ */

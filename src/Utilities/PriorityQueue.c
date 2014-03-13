@@ -65,3 +65,22 @@ int updateProcessPriority(PriorityQueue* queue, int processId, int oldPriority, 
 		return enqueue(getQueueAtPriority(queue, newPriority), process);
 	}
 }
+
+void serializePriorityQueue(PriorityQueue* priorityQueue, char message[],  int startIndex) {
+    int j = startIndex; // j is the current write index of message
+    int i;
+    for (i = 0; i < NUM_PRIORITIES; i++) {
+        message[j] = 'P';
+        j++;
+        message[j] = i + '0';
+        j++;
+        message[j] = ':';
+        j++;
+        message[j] = ' ';
+        j++;
+		j = serializeProcessQueue(&priorityQueue->m_Queues[i], message, j);
+        message[j] = '\n';
+        j++;
+	}
+    message[j] = '\0';
+}

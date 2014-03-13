@@ -48,4 +48,7 @@ PCB* removeProcess(ProcessQueue*, int processId);
 //returns true if processID is the ID of an I-Process
 int isIProcess(int processID);
 
+//
+int serializeProcessQueue(ProcessQueue* queue, char message[], int startIndex);
+
 #endif /* _PROCESS_QUEUE_ */

@@ -28,6 +28,11 @@ int nonPreemptiveSendMessage(int, int, void*); // sends the message to the speci
 int deliverMessage(int, int, int, void*, int); // adds the envelope to the message queue of the specified destination process
 int handleMemoryRelease(int); // handles a release memory block event, prempts if specified
 int process_switch(void); // takes in process id to allow iprocesses to override the scheduler
+void serializeQueue(char debugInfo[], int start, int queueNumber); //fills debug info with all preocesses within queueNumber, 0=>ready, 1=>blocked on memory, 2=> blocked on receive
+
+#define serializeReadyQueue(debugInfo, start) serializeQueue(debugInfo, start, 0)
+#define serializeBlockedOnMemoryQueue(debugInfo, start) serializeQueue(debugInfo, start, 1)
+#define serializeBlockedOnReceive(debugInfo, start) serializeQueue(debugInfo, start, 2)
 
 extern U32 *alloc_stack(U32 size_b);   /* allocate stack for a process */
 extern void __rte(void);               /* pop exception stack frame */
