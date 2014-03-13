@@ -10,10 +10,13 @@
 #include "k_process.h"
 #include "k_memory.h"
 #include "Polling/uart_polling.h"
-#include "printf.h"
 #include "Utilities/String.h"
 
 #include <LPC17xx.h>
+
+#ifdef DEBUG_0
+#include "printf.h"
+#endif /* ! DEBUG_0 */
 
 PROC_INIT UARTProcess; // for UART i-process PCB
 char hotkeys[3]={'~','!','@'};

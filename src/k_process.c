@@ -12,7 +12,9 @@
 
 #include "k_process.h"
 
+#ifdef DEBUG_0
 #include "printf.h"
+#endif /* ! DEBUG_0 */
 
 PCB* processTable[NUM_PROCS]; // kernel process table
 PCB* currentProcess; // points to the current RUNNING process

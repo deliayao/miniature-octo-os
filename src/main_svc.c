@@ -14,20 +14,21 @@
 
 #include <LPC17xx.h>
 #include <system_LPC17xx.h>
-#include "rtx.h"
 
 #include "Polling/uart_polling.h"
+#include "rtx.h"
+
+#ifdef DEBUG_0
 #include "printf.h"
+#endif /* ! DEBUG_0 */
 
-
-
-
-int main() {	
+int main() {
 	/* CMSIS system initialization */
-	
 	SystemInit(); 
 
+#ifdef DEBUG_0
 	init_printf(NULL, putc);
+#endif /* ! DEBUG_0 */
 
 	/* start the RTX and built-in processes */
 	rtx_init();  
