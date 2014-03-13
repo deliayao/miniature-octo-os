@@ -111,9 +111,11 @@ void runKCDProcess(void) {
                 deleteFromBuffer();
                 send_message(CRT_PROCESS, (void*)message);
             } else { // normal character
-                if (inputBuffer[MAX_LETTER_LENGTH - 2] == '\0'){ // we use -2 because we need to leave room for the null character
+                if (inputBuffer[MAX_LETTER_LENGTH - 2] == '\0') { // we use -2 because we need to leave room for the null character
                     writeToBuffer(message->m_Text[0]);
                     send_message(CRT_PROCESS, (void*)message);
+                } else {
+					release_memory_block((void*)message); // if buffer is full, we do not print the character; so release memory block
                 }
             }
         } else if (message->m_Type == KCD_REG) { // register command
