@@ -72,17 +72,6 @@ char inputBuffer[MAX_LETTER_LENGTH];
 int bufferIndex; // the next index in the buffer that we should be writing into
 
 void runKCDProcess(void) {
-   
-	//DELIA+ANDREW DUMMY runKCD PROCESS
-	/*void * message;
-    
-    while (1) {
-        message = receive_message(NULL);
-        send_message(CRT_PROCESS, message);
-			  release_processor();
-    }*/
-		
-		
     //KCD PSEUDOCODE
     //receive message
     // if (message->type is regular)
