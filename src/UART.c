@@ -264,11 +264,12 @@ void c_UART0_IRQHandler(void)
         uart1_put_string("\n\r");
 #endif // DEBUG_0
         
+				#ifdef _DEBUG_HOTKEYS
         //check for hotkey
         if (strcont(hotkeys, character)) { // placeholder for hot keys
             hotkeyHandler(character);
         } else {
-        
+        #endif // DEBUG_HOTKEYS
             // send a message to KCD containing the character
             node = nonBlockingRequestMemory(); // request memory for message
             if (node != NULL) {
@@ -280,7 +281,9 @@ void c_UART0_IRQHandler(void)
                 // send the letter
                 nonPreemptiveSendMessage(UART_IPROCESS, KCD_PROCESS, (void*)newLetter);
             }
+				#ifdef _DEBUG_HOTKEYS	
         }
+				#endif // DEBUG_HOTKEYS
     } else if (IIR_IntId & IIR_THRE) { // transmission
         Letter* newLetter;
         
@@ -324,8 +327,9 @@ void hotkeyHandler(char hotkey) {
             debugInfo[3] = 'D';
             debugInfo[4] = 'Y';
             debugInfo[5] = ':';
-            debugInfo[6] = '\n';
-            j = 7;
+					  debugInfo[6] = '\r';
+            debugInfo[7] = '\n';
+            j = 8;
             serializeReadyQueue(debugInfo, j);
         } else if (hotkey == hotkeys[1]) {  //print blocked on memory queue and their priorities
             debugInfo[0] = 'B';
@@ -340,8 +344,9 @@ void hotkeyHandler(char hotkey) {
             debugInfo[9] = 'E';
             debugInfo[10] = 'M';
             debugInfo[11] = ':';
-            debugInfo[12] = '\n';
-            j = 13;
+					  debugInfo[12] = '\r';
+            debugInfo[13] = '\n';
+            j = 14;
             serializeBlockedOnMemoryQueue(debugInfo, j);
         } else if (hotkey == hotkeys[2]) {  //print blocked on receive processes and their priorities
             debugInfo[0] = 'B';
@@ -367,8 +372,9 @@ void hotkeyHandler(char hotkey) {
             debugInfo[20] = 'I';
             debugInfo[21] = ')';
             debugInfo[22] = ':';
-            debugInfo[23] = '\n';
-            j = 24;
+						debugInfo[23] = '\r';
+            debugInfo[24] = '\n';
+            j = 25;
             serializeBlockedOnReceive(debugInfo, j);
         }
         

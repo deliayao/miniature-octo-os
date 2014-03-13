@@ -353,10 +353,13 @@ void serializeQueue(char debugInfo[], int start, int queueNumber){
                 j++;
                 debugInfo[j] = ')';
                 j++;
+								debugInfo[j] = '\r';
+                j++;
                 debugInfo[j] = '\n';
                 j++;
             }
         }
+				debugInfo[j] = '\0';
     } else { // any priority queued state
         if (queueNumber >= 0 && queueNumber < QUEUED_STATES) {
             serializePriorityQueue(masterPQs[queueNumber], debugInfo, j);

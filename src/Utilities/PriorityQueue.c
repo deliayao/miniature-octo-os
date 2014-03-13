@@ -79,6 +79,8 @@ void serializePriorityQueue(PriorityQueue* priorityQueue, char message[],  int s
         message[j] = ' ';
         j++;
 		j = serializeProcessQueue(&priorityQueue->m_Queues[i], message, j);
+				message[j] = '\r';
+        j++;
         message[j] = '\n';
         j++;
 	}
