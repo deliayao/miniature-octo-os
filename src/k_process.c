@@ -275,11 +275,6 @@ void *k_receive_message(int *sender_id) {
 		*sender_id = envelope->m_SenderPID; // return ID of sender
 	}
     
-    if (envelope->m_DestinationPID == 7) {
-        int i=0;
-        i++;
-    }
-    
 	return (void*)((U32)envelope + sizeof(Envelope)); // return the envelope offset by the size of Envelope
 }
 

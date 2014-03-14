@@ -19,7 +19,12 @@
 #endif /* ! DEBUG_0 */
 
 PROC_INIT UARTProcess; // for UART i-process PCB
+
 char hotkeys[3]={'~','!','@'};
+
+#ifdef _DEBUG_HOTKEYS	
+char debugInfo[75];
+#endif /* _DEBUG_HOTKEYS */
 
 /**
  * @brief: initialize the n_uart
@@ -316,8 +321,6 @@ void hotkeyHandler(char hotkey) {
     // or we could call functions that return reference or copies of them
     int i;
     int j = 0;
-    char* debugInfo;//4 chars for each process and 70 for additional characters, this is pretty arbitrary
-    debugInfo = (char*)nonBlockingRequestMemory(); 
     
     if (debugInfo != NULL) {
         if (hotkey == hotkeys[0]) { //print ready queue processes and their priorities
@@ -381,7 +384,5 @@ void hotkeyHandler(char hotkey) {
         for (i=0; debugInfo[i] != '\0'; i++) {
             uart1_put_char(debugInfo[i]);
         }
-        nonPreemptiveReleaseMemory(debugInfo); //its okay to be in the 'if' because if we got NULL then it isn't a valid block anyways
     }
-    j++; // GET ROID OF THIS JUST FOR DEBUGGIN
 }
