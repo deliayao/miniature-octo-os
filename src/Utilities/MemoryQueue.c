@@ -5,6 +5,9 @@
 
 #include "MemoryQueue.h"
 
+int usedCount; // number of memory blocks currently in use
+int availableCount; // number of memory blocks currently free
+
 Node* initialFront = NULL;
 
 Node* dequeueNode(MemoryQueue* queue) {
@@ -17,6 +20,9 @@ Node* dequeueNode(MemoryQueue* queue) {
         if (queue->m_First == NULL) {
             queue->m_Last = NULL;
         }
+        
+        usedCount++;
+        availableCount--;
     }
 
     return front;
@@ -33,6 +39,9 @@ int enqueueNode(MemoryQueue* queue, Node* node) {
     }
 
     queue->m_Last = node;
+    
+    usedCount--;
+    availableCount++;
 
     // this function doesn't actually do any checks right now,
     // so the operation always succeeds
@@ -64,6 +73,9 @@ void initializeMemoryQueue(MemoryQueue* queue, Node* first) {
 
     queue->m_First = first;
     queue->m_Last = currentNode;
+    
+    usedCount = 0;
+    availableCount = NUM_BLOCKS;
 }
 
 int isEmptyMemoryQueue(MemoryQueue* queue) {

@@ -43,10 +43,10 @@ void process_init() {
 	initializeNullProcess();
 	set_test_procs();
 
-	g_proc_table[NULL].m_pid = nullProcess.m_pid;
-	g_proc_table[NULL].m_priority = nullProcess.m_priority;
-	g_proc_table[NULL].m_stack_size = nullProcess.m_stack_size;
-	g_proc_table[NULL].mpf_start_pc = nullProcess.mpf_start_pc;
+	g_proc_table[NULL_PROCESS].m_pid = nullProcess.m_pid;
+	g_proc_table[NULL_PROCESS].m_priority = nullProcess.m_priority;
+	g_proc_table[NULL_PROCESS].m_stack_size = nullProcess.m_stack_size;
+	g_proc_table[NULL_PROCESS].mpf_start_pc = nullProcess.mpf_start_pc;
 
 	for ( i = 1; i < NUM_PROCS; i++ ) {
 		g_proc_table[i].m_pid = g_test_procs[i - 1].m_pid;
