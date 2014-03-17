@@ -6,61 +6,7 @@
 #ifndef RTX_H_
 #define RTX_H_
 
-/* ----- Definitions ----- */
-#define RTX_ERR -1
-#define NULL 0
-#define NUM_TEST_PROCS 6
-
-/* Process Priority. The bigger the number is, the lower the priority is*/
-#define PRIVILEGED       0
-#define HIGH             1
-#define MEDIUM           2
-#define LOW              3
-#define LOWEST           4
-#define NULL_PRIORITY    5
-
-// Process IDs
-#define NULL_PROCESS 					0
-#define PROCESS_1   					1
-#define PROCESS_2   					2
-#define PROCESS_3   					3
-#define PROCESS_4   					4
-#define PROCESS_5   					5
-#define PROCESS_6   					6
-#define PROCESS_A    					7
-#define PROCESS_B    					8
-#define PROCESS_C    					9
-#define PROCESS_SET_PRIORITY 	10
-#define CLOCK_PROCESS        	7
-#define KCD_PROCESS          	8
-#define CRT_PROCESS          	9
-#define TIMER_IPROCESS  			10
-#define UART_IPROCESS   			11
-
-// UART flags
-#define IER_RBR		0x01
-#define IER_THRE	0x02
-#define IER_RLS		0x04
-
-#define IIR_PEND	0x01
-#define IIR_RLS		0x03
-#define IIR_RDA		0x02
-#define IIR_CTI		0x06
-#define IIR_THRE	0x01
-
-#define LSR_RDR		0x01
-#define LSR_OE		0x02
-#define LSR_PE		0x04
-#define LSR_FE		0x08
-#define LSR_BI		0x10
-#define LSR_THRE	0x20
-#define LSR_TEMT	0x40
-#define LSR_RXFE	0x80
-
-#define BUFSIZE		0x40
-
-/* ----- Types ----- */
-typedef unsigned int U32;
+#include "Utilities/Types.h"
 
 /* initialization table item */
 typedef struct proc_init
@@ -70,24 +16,6 @@ typedef struct proc_init
 	int m_stack_size;       /* size of stack in words */
 	void (*mpf_start_pc) ();/* entry point of the process */
 } PROC_INIT;
-
-// For IPC
-#define MAX_LETTER_LENGTH 35
-
-// Message Types
-#define DEFAULT 0
-#define KCD_REG 1
-
-//Command Table
-#define COMMAND_TABLE_SIZE 10
-#define MAX_COMMAND_LENGTH 3
-
-//Letter Definition
-typedef struct Letter
-{
-    int m_Type; // message type
-    char m_Text[MAX_LETTER_LENGTH]; // message body
-} Letter;
 
 /* ----- RTX User API ----- */
 #define __SVC_0  __svc_indirect(0)

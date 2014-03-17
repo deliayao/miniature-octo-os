@@ -17,9 +17,17 @@ typedef struct MessageQueue {
 // returns NULL if the queue is empty
 Envelope* dequeueEnvelope(MessageQueue*);
 
+// removes and returns the first Envelope of the queue as a Letter*
+// returns NULL if the queue is empty
+Letter* dequeueLetter(MessageQueue*);
+
 // adds the specified Envelope to the back of the queue
 // returns the success/failure of the operation
 int enqueueEnvelope(MessageQueue*, Envelope*);
+
+// adds the specified Letter to the back of the queue
+// returns the success/failure of the operation
+int enqueueLetter(MessageQueue*, Letter*);
 
 // initializes the queue
 void initializeMessageQueue(MessageQueue*);

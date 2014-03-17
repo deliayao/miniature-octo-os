@@ -23,7 +23,7 @@ PROC_INIT UARTProcess; // for UART i-process PCB
 char hotkeys[3]={'~','!','@'};
 
 #ifdef _DEBUG_HOTKEYS	
-char debugInfo[75];
+char debugInfo[100];
 #endif /* _DEBUG_HOTKEYS */
 
 /**
@@ -314,6 +314,7 @@ void c_UART0_IRQHandler(void)
     k_release_processor();
 }
 
+#ifdef _DEBUG_HOTKEYS
 void hotkeyHandler(char hotkey) {
     
     //We could either have kernel functions that serialize queues,
@@ -386,3 +387,4 @@ void hotkeyHandler(char hotkey) {
         }
     }
 }
+#endif /* _DEBUG_HOTKEYS */

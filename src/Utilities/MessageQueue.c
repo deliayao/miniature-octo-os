@@ -22,6 +22,11 @@ Envelope* dequeueEnvelope(MessageQueue* queue) {
     return front;
 }
 
+Letter* dequeueLetter(MessageQueue* queue) {
+    Envelope* envelope = dequeueEnvelope(queue);
+    return (envelope == NULL) ? (Letter*)envelope : (Letter*)((U32)envelope + sizeof(Envelope));
+}
+
 int enqueueEnvelope(MessageQueue* queue, Envelope* envelope) {
     // new envelope will be the last element in the queue
     envelope->m_Next = NULL;
@@ -37,6 +42,10 @@ int enqueueEnvelope(MessageQueue* queue, Envelope* envelope) {
     // this function doesn't actually do any checks right now,
     // so the operation always succeeds
     return RTX_OK; 
+}
+
+int enqueueLetter(MessageQueue* queue, Letter* letter) {
+    return enqueueEnvelope(queue, (Envelope*)((U32)letter - sizeof(Envelope)));
 }
 
 void initializeMessageQueue(MessageQueue* queue) {

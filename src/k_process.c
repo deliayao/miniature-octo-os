@@ -31,6 +31,7 @@ PriorityQueue blockedOnMemoryQueue;
 /* process initialization table */
 PROC_INIT g_proc_table[NUM_PROCS];
 extern PROC_INIT g_test_procs[NUM_TEST_PROCS];
+extern PROC_INIT stressProcesses[NUM_STRESS_PROCS];
 extern PROC_INIT nullProcess;
 extern PROC_INIT clockProcess;
 extern PROC_INIT KCDProcess;
@@ -53,7 +54,9 @@ void process_init() {
 	initializeSystemProcesses();
     initializeTimerProcess();
     initializeUARTProcess();
+    
 	set_test_procs();
+    setStressTestProcesses();
 
     // system processes
 	g_proc_table[NULL_PROCESS].m_pid = nullProcess.m_pid;
@@ -87,11 +90,19 @@ void process_init() {
 	g_proc_table[UART_IPROCESS].mpf_start_pc = UARTProcess.mpf_start_pc;
 
     // test processes
-	for ( i = 1; i < (NUM_PROCS - (NUM_IPROCS + NUM_SYSTEM_PROCS)); i++ ) {
+	for (i = 1; i <= NUM_TEST_PROCS; i++) {
 		g_proc_table[i].m_pid = g_test_procs[i - 1].m_pid;
 		g_proc_table[i].m_priority = g_test_procs[i - 1].m_priority;
 		g_proc_table[i].m_stack_size = g_test_procs[i - 1].m_stack_size;
 		g_proc_table[i].mpf_start_pc = g_test_procs[i - 1].mpf_start_pc;
+	}
+    
+    // stress test processes
+	for (i = 1; i <= NUM_STRESS_PROCS; i++) {
+		g_proc_table[i + 6].m_pid = stressProcesses[i - 1].m_pid;
+		g_proc_table[i + 6].m_priority = stressProcesses[i - 1].m_priority;
+		g_proc_table[i + 6].m_stack_size = stressProcesses[i - 1].m_stack_size;
+		g_proc_table[i + 6].mpf_start_pc = stressProcesses[i - 1].mpf_start_pc;
 	}
 
 	/* initialize exception stack frame (i.e. initial context) for each process */
@@ -265,7 +276,7 @@ int k_send_message(int process_id, void *message_envelope) {
 void *k_receive_message(int *sender_id) {
     Envelope * envelope;
     
-    if (isEmptyMessageQueue(&(currentProcess->m_Mailbox))) {
+    while (isEmptyMessageQueue(&(currentProcess->m_Mailbox))) {
 		currentProcess->m_State = BLOCKED_RECEIVE;
 		k_release_processor();
 	}
@@ -340,7 +351,7 @@ void serializeQueue(char debugInfo[], int start, int queueNumber){
             if (processTable[i]->m_State == BLOCKED_RECEIVE) {
                 debugInfo[j] = '(';
                 j++;
-                debugInfo[j] = processTable[i]->m_PID + '0';
+                debugInfo[j] = processTable[i]->m_PID + '0'; // TODO: fix this, it doesn't work for PIDs >= 10
                 j++;
                 debugInfo[j] = ',';
                 j++;

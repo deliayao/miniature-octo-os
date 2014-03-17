@@ -6,9 +6,10 @@
  * NOTE: Each process is in an infinite loop. Processes never terminate.
  */
 
+#include "usr_proc.h"
+
 #include "rtx.h"
 #include "Polling/uart_polling.h"
-#include "usr_proc.h"
 
 #ifdef DEBUG_0
 #include "printf.h"
@@ -72,7 +73,7 @@ void set_test_procs() {
  */
 void proc1(void) {
 	Letter* received;
-
+    
 	while (1) {
 		if (testMode) {
 			test[1]++; // test[1] is 1
@@ -98,7 +99,7 @@ void proc2(void) {
 	Letter* command;
 	Letter* received;
 	int sender;
-		
+    
 	while (1) {
 		command = (Letter*)request_memory_block();
 		command->m_Type = KCD_REG;

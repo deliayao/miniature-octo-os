@@ -6,6 +6,10 @@
 #ifndef _STRING_
 #define _STRING_
 
+// returns 1 if character 'find' is found in char[] 'source'
+// returns 0 otherwise
+int strcont(char source[], char find);
+
 // copies a string from source to destination
 // this function assumes the following:
 // - destination[] is null-terminated
@@ -14,12 +18,13 @@
 // and append a null character to the end of source[] before returning
 void strcpy(char source[], char destination[]);
 
+// returns 1 if a[] is exactly equal to b[]
+// returns 0 otherwise
+// this function assumes that both a[] and b[] are null-terminated
+int strequals(char a[], char b[]);
+
 // returns the length of the string
 // this function assumes that source[] is null-terminated
 int strlen(char source[]);
-
-// returns 1 if character 'find' is found in char[] 'source'
-// returns 0 otherwise
-int strcont(char source[], char find);
 
 #endif /* _STRING_ */
