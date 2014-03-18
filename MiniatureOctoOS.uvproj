@@ -531,6 +531,16 @@
               <FileType>5</FileType>
               <FilePath>.\src\ClockProcess.h</FilePath>
             </File>
+            <File>
+              <FileName>SetPriorityProcess.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\SetPriorityProcess.c</FilePath>
+            </File>
+            <File>
+              <FileName>SetPriorityProcess.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\src\SetPriorityProcess.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -1194,6 +1204,16 @@
               <FileName>ClockProcess.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\src\ClockProcess.h</FilePath>
+            </File>
+            <File>
+              <FileName>SetPriorityProcess.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\SetPriorityProcess.c</FilePath>
+            </File>
+            <File>
+              <FileName>SetPriorityProcess.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\src\SetPriorityProcess.h</FilePath>
             </File>
           </Files>
         </Group>

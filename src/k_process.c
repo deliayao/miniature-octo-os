@@ -38,6 +38,7 @@ extern PROC_INIT KCDProcess;
 extern PROC_INIT CRTProcess;
 extern PROC_INIT timerProcess;
 extern PROC_INIT UARTProcess;
+extern PROC_INIT setPriorityProcess;
 
 extern MemoryQueue heap;
 extern volatile uint32_t g_timer_count;
@@ -50,6 +51,7 @@ void process_init() {
 	U32 *sp;
 
 	// initialize processes
+    initializeSetPriorityProcess();
     initializeClockProcess();
 	initializeSystemProcesses();
     initializeTimerProcess();
@@ -63,6 +65,11 @@ void process_init() {
 	g_proc_table[NULL_PROCESS].m_priority = nullProcess.m_priority;
 	g_proc_table[NULL_PROCESS].m_stack_size = nullProcess.m_stack_size;
 	g_proc_table[NULL_PROCESS].mpf_start_pc = nullProcess.mpf_start_pc;
+    
+    g_proc_table[PROCESS_SET_PRIORITY].m_pid = setPriorityProcess.m_pid;
+	g_proc_table[PROCESS_SET_PRIORITY].m_priority = setPriorityProcess.m_priority;
+	g_proc_table[PROCESS_SET_PRIORITY].m_stack_size = setPriorityProcess.m_stack_size;
+	g_proc_table[PROCESS_SET_PRIORITY].mpf_start_pc = setPriorityProcess.mpf_start_pc;
     
     g_proc_table[CLOCK_PROCESS].m_pid = clockProcess.m_pid;
 	g_proc_table[CLOCK_PROCESS].m_priority = clockProcess.m_priority;

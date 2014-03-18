@@ -38,6 +38,7 @@ extern U32 *alloc_stack(U32 size_b);   /* allocate stack for a process */
 extern void __rte(void);               /* pop exception stack frame */
 extern void set_test_procs(void);      /* test process initial set up */
 extern void setStressTestProcesses(void); // stress test processes initialization
+extern void initializeSetPriorityProcess(void); // set priority process initialization
 extern void initializeClockProcess(void); // clock process initialization
 extern void initializeSystemProcesses(void); // null process initialization
 extern void initializeTimerProcess(void); // timer i-process initialization
