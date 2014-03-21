@@ -211,7 +211,7 @@ int k_set_process_priority(int process_id, int priority) {
 	int oldPriority;
 	int i;
 
-	if (process_id <= 0 || process_id >= NUM_PROCS) { // cannot change priority of null process
+	if (process_id <= NULL_PROCESS || process_id > (NUM_TEST_PROCS + NUM_STRESS_PROCS)) { // cannot change priority of system processes
 		return RTX_ERR;
 	}
 	if (priority < HIGH || priority > LOWEST) { // cannot change to PRIVILEGED or NULL_PRIORITY

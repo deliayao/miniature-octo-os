@@ -23,12 +23,10 @@ void initializeSetPriorityProcess(void) {
 	setPriorityProcess.mpf_start_pc = &runSetPriorityProcess;
 }
 
-
-
 void runSetPriorityProcess(void) {
 	Letter* message;
 	Letter* registerCommand;
-	int sender;
+    
 	// register the commands to kcd
 	registerCommand = (Letter*)request_memory_block(); 	
 	registerCommand->m_Type = KCD_REG;
@@ -37,45 +35,41 @@ void runSetPriorityProcess(void) {
 	registerCommand->m_Text[2] = '\0';
 	send_message(KCD_PROCESS, (void *)registerCommand);
 	
-	while(1) {
-		
+	while (1) {
 		int commandLength;
 		int processID;
 		int newPriority;
+        int sender;
 		
 		message = (Letter*)receive_message(&sender);
 		commandLength = strlen(message->m_Text);
 		
 		if (commandLength == 6) {
+            // TODO: Check full format. For example, "%C 111" will work right now because we're not checking whitespace.
 			processID = message->m_Text[3] - '0';
 			newPriority = message->m_Text[5] - '0';
-			
-			if (processID >= PROCESS_1 && processID <= PROCESS_C) { // Check if process ID is between 1 to 9
-				if (newPriority >= HIGH && newPriority <= LOWEST) { // check if new priority is between 1 to 4
-					
-					set_process_priority(processID, newPriority);
-											release_memory_block((void*)message);
-				} else { // priority is not between 1 to 4
-					message->m_Type = DEFAULT;
-					strcpy("\r\nBad Priority\r\n", message->m_Text);
-					send_message(CRT_PROCESS, (void*)message);
-				}
-			} else {
-									message->m_Type = DEFAULT;
-									strcpy("\r\nBad ID\r\n", message->m_Text);
-				send_message(CRT_PROCESS, (void*)message);
-			}
+            
+            if (processID < PROCESS_1 || processID > PROCESS_C) { // ensure process ID is between 1 to 9
+				strcpy("\r\nBad ID\r\n", message->m_Text);
+                send_message(CRT_PROCESS, (void*)message);
+            } else if (newPriority < HIGH || newPriority > LOWEST) { // ensure new priority is between 1 to 4
+				strcpy("\r\nBad Priority\r\n", message->m_Text);
+                send_message(CRT_PROCESS, (void*)message);
+            } else {
+                set_process_priority(processID, newPriority);
+                if (sender == KCD_PROCESS) {
+                    strcpy("\r\n", message->m_Text);
+                    send_message(CRT_PROCESS, (void*)message);
+                } else {
+                    release_memory_block((void*)message);
+                }
+            }
 		} else {
-							message->m_Type = DEFAULT;
+			message->m_Type = DEFAULT;
 			strcpy("\r\nBad Format\r\n", message->m_Text);
 			send_message(CRT_PROCESS, (void*)message);
 		}
 		
-		release_memory_block((void*) message);
-
 		release_processor();
 	}
-	
 }
-
-
