@@ -69,21 +69,44 @@ void set_test_procs() {
 */
 
 /**
+* test cases (RTX III):
+* test1: Tests BLOCKED_RECEIVE.
+* test2: Tests receive_message() sender and content.
+* test3: Tests delayed_send().
+* test4: Tests release_memory_block().
+* test5: Tests context switching.
+* test6: Tests get_process_priority() and set_process_priority() preemption by sending a command message to PROCESS_SET_PRIORITY.  
+*/
+
+/**
  * @brief: Process waits for a message from Process 5, then sets its priority to LOWEST causing a preemption.
  */
 void proc1(void) {
 	Letter* received;
-    
+	Letter* command;
+	
+	command = (Letter*)request_memory_block();
+	command->m_Type = DEFAULT;
+	
+	//command for testing set priority process 
+	command->m_Text[0] = '%';
+	command->m_Text[1] = 'C';
+	command->m_Text[2] = ' ';
+	command->m_Text[2] = '1';	//PROCESS_1
+	command->m_Text[2] = ' ';
+	command->m_Text[2] = '4';	//PRIORITY LOWEST
+	command->m_Text[3] = '\0';
+	
 	while (1) {
 		if (testMode) {
 			test[1]++; // test[1] is 1
 		}
 		received = (Letter*)receive_message(NULL); // this will block until Process 5 sends a message
-        release_memory_block((void*)received);
-        
-        set_process_priority(PROCESS_1, LOWEST); // this will preempt, Process 6 will always have a higher priority
-       
-        // if the process reaches this point, it has failed
+		release_memory_block((void*)received);
+			
+		send_message(PROCESS_SET_PRIORITY, (void*)command); // this will preempt, Process 6 will always have a higher priority
+		
+    // if the process reaches this point, it has failed
 		if (testMode) {
 			test[6] = -1000;
 		}
@@ -109,8 +132,8 @@ void proc2(void) {
 		command->m_Text[3] = '\0';
 		
 		if (testMode) {
-            test[2]++; // test[2] is 1
-        }
+				test[2]++; // test[2] is 1
+		}
         
 		send_message(KCD_PROCESS, (void*)command); // register command
 		release_processor();
@@ -136,9 +159,22 @@ void proc2(void) {
         } else {
             test[4]++;
         }
-        
-        // set Process 2 to LOWEST priority (should never run again)
+		// recycle command after it releases its memory block in KCD process.
+		command = (Letter*)request_memory_block();
+		command->m_Type = DEFAULT;
+
+		//command for testing set priority process 
+		command->m_Text[0] = '%';
+		command->m_Text[1] = 'C';
+		command->m_Text[2] = ' ';
+		command->m_Text[2] = '2';	//PROCESS_2
+		command->m_Text[2] = ' ';
+		command->m_Text[2] = '4';	//PRIORITY LOWEST
+		command->m_Text[3] = '\0';   
+				
+		// set Process 2 to LOWEST priority (should never run again)
 		set_process_priority(PROCESS_2, LOWEST);
+				
 		release_processor();
 	}
 }
@@ -151,11 +187,12 @@ void proc2(void) {
 void proc3(void) {
 	Letter* message;
 	Letter* received;
+	Letter* command;
 	int sender;
 		
 	while (1) {
         // write a message to Process 2
-		message = (Letter*)request_memory_block();
+		message = (Letter*)request_memory_block();		
 		message->m_Type = DEFAULT;
 		message->m_Text[0] = 'H';
 		message->m_Text[1] = 'i';
@@ -189,9 +226,21 @@ void proc3(void) {
 		}
 		
 		release_memory_block((void*)received);
-        
-        // set Process 3 to LOWEST priority (should never run again)
-		set_process_priority(PROCESS_3, LOWEST);
+    
+		command = (Letter*)request_memory_block();
+		command->m_Type = DEFAULT;
+		
+		//command for testing set priority process 
+		command->m_Text[0] = '%';
+		command->m_Text[1] = 'C';
+		command->m_Text[2] = ' ';
+		command->m_Text[2] = '3';	//PROCESS_3
+		command->m_Text[2] = ' ';
+		command->m_Text[2] = '4';	//PRIORITY LOWEST
+		command->m_Text[3] = '\0';  
+		
+		// set Process 3 to LOWEST priority (should never run again)
+		send_message(PROCESS_SET_PRIORITY, (void*)command);
 		release_processor();
 	}
 }
@@ -302,9 +351,9 @@ void proc6(void) {
 		while (testMode) {
 			i++;
 			if (test[6] != 0) {
-                break; // break if Process 5 completed all of its tests
-            }
-            release_processor();
+				break; // break if Process 5 completed all of its tests
+			}
+			release_processor();
 		}
 		
         // print test results
