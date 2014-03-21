@@ -358,7 +358,11 @@ void serializeQueue(char debugInfo[], int start, int queueNumber){
             if (processTable[i]->m_State == BLOCKED_RECEIVE) {
                 debugInfo[j] = '(';
                 j++;
-                debugInfo[j] = processTable[i]->m_PID + '0'; // TODO: fix this, it doesn't work for PIDs >= 10
+                if (processTable[i]->m_PID / 10 > 0) {// assuming less than 99 processes
+                    debugInfo[j] = (processTable[i]->m_PID/10) + '0';
+                    j++;
+                }
+                debugInfo[j] = (processTable[i]->m_PID % 10) + '0';
                 j++;
                 debugInfo[j] = ',';
                 j++;
@@ -366,7 +370,7 @@ void serializeQueue(char debugInfo[], int start, int queueNumber){
                 j++;
                 debugInfo[j] = ')';
                 j++;
-								debugInfo[j] = '\r';
+				debugInfo[j] = '\r';
                 j++;
                 debugInfo[j] = '\n';
                 j++;

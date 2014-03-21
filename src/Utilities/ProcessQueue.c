@@ -83,7 +83,12 @@ int serializeProcessQueue(ProcessQueue* queue, char message[], int startIndex) {
     PCB* currentProcess = queue->m_First;
 	
 	while (currentProcess != NULL) {
-        message[j] = currentProcess->m_PID + '0';
+		
+				if (currentProcess->m_PID / 10 > 0) {// assuming less than 99 processes
+						message[j] = (currentProcess->m_PID/10) + '0';
+						j++;
+				}
+        message[j] = (currentProcess->m_PID % 10) + '0';
         j++;
         message[j] = ' ';
         j++;

@@ -44,7 +44,7 @@ void runSetPriorityProcess(void) {
 		message = (Letter*)receive_message(&sender);
 		commandLength = strlen(message->m_Text);
 		
-		if (commandLength == 6) {
+		if (commandLength == 6 && message->m_Text[4] == ' ') {
             // TODO: Check full format. For example, "%C 111" will work right now because we're not checking whitespace.
 			processID = message->m_Text[3] - '0';
 			newPriority = message->m_Text[5] - '0';
