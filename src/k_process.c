@@ -33,7 +33,7 @@ PROC_INIT g_proc_table[NUM_PROCS];
 extern PROC_INIT g_test_procs[NUM_TEST_PROCS];
 extern PROC_INIT stressProcesses[NUM_STRESS_PROCS];
 extern PROC_INIT nullProcess;
-extern PROC_INIT clockProcess;
+extern PROC_INIT g_ClockProcess;
 extern PROC_INIT KCDProcess;
 extern PROC_INIT CRTProcess;
 extern PROC_INIT timerProcess;
@@ -71,10 +71,10 @@ void process_init() {
 	g_proc_table[PROCESS_SET_PRIORITY].m_stack_size = setPriorityProcess.m_stack_size;
 	g_proc_table[PROCESS_SET_PRIORITY].mpf_start_pc = setPriorityProcess.mpf_start_pc;
     
-    g_proc_table[CLOCK_PROCESS].m_pid = clockProcess.m_pid;
-	g_proc_table[CLOCK_PROCESS].m_priority = clockProcess.m_priority;
-	g_proc_table[CLOCK_PROCESS].m_stack_size = clockProcess.m_stack_size;
-	g_proc_table[CLOCK_PROCESS].mpf_start_pc = clockProcess.mpf_start_pc;
+    g_proc_table[CLOCK_PROCESS].m_pid = g_ClockProcess.m_pid;
+	g_proc_table[CLOCK_PROCESS].m_priority = g_ClockProcess.m_priority;
+	g_proc_table[CLOCK_PROCESS].m_stack_size = g_ClockProcess.m_stack_size;
+	g_proc_table[CLOCK_PROCESS].mpf_start_pc = g_ClockProcess.mpf_start_pc;
     
     g_proc_table[KCD_PROCESS].m_pid = KCDProcess.m_pid;
 	g_proc_table[KCD_PROCESS].m_priority = KCDProcess.m_priority;
