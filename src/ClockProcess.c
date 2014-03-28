@@ -6,7 +6,6 @@
 #include "ClockProcess.h"
 
 #include "rtx.h"
-#include "Polling/uart_polling.h" 
 #include "Utilities/String.h"
 
 #include <LPC17xx.h>

@@ -37,7 +37,7 @@ void runClockProcess(void);
  * @return  The success or failure of the operation (fails if user input is
  *          invalid).
  */
-int setClock(char[] command);
+int setClock(char command[]);
 
 /**
  * Starts the loop of self-sent delayed messages, which will allow the wall
