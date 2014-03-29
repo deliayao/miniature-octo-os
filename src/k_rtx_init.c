@@ -11,19 +11,19 @@
 #include "Timer.h"
 #include "UART.h"
 
-void k_rtx_init(void)
-{
-				
-		
-        __disable_irq();
-		timer_init(0); /* initialize timer 0 */
-        uart0_irq_init(); // uart0 interrupt driven, for RTX console
-        uart1_polling_init(); // uart1 polling, for debugging
-        memory_init();
-        process_init();
-        __enable_irq();
+void k_rtx_init(void) {
+    __disable_irq();
+    
+#ifndef DEBUG_PERFORMANCE // disable primary timer interrupts during performance testing
+    timer_init(0); /* initialize timer 0 */
+#endif /* !DEBUG_PERFORMANCE */
+    timer_init(1); /* initialize timer 1 */
+    uart0_irq_init(); // uart0 interrupt driven, for RTX console
+    uart1_polling_init(); // uart1 polling, for debugging
+    memory_init();
+    process_init();
+    __enable_irq();
 
-	/* start the first process */
-	
-        k_release_processor();
+	// start the first process
+    k_release_processor();
 }

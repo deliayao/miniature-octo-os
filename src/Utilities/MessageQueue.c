@@ -9,7 +9,9 @@ Envelope* dequeueEnvelope(MessageQueue* queue) {
     Envelope* front = queue->m_First; // this will be NULL if the queue is empty
 
     if (queue->m_First != NULL) {
+#ifndef DEBUG_PERFORMANCE
         queue->m_First = queue->m_First->m_Next;
+#endif /* DEBUG_PERFORMANCE */
 
         // this is true if the queue only had one element
         if (queue->m_First == NULL) {
