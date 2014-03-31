@@ -32,10 +32,10 @@ PriorityQueue blockedOnMemoryQueue;
 PROC_INIT g_proc_table[NUM_PROCS];
 extern PROC_INIT g_test_procs[NUM_TEST_PROCS];
 extern PROC_INIT stressProcesses[NUM_STRESS_PROCS];
-extern PROC_INIT nullProcess;
+extern PROC_INIT g_NullProcess;
 extern PROC_INIT g_ClockProcess;
-extern PROC_INIT KCDProcess;
-extern PROC_INIT CRTProcess;
+extern PROC_INIT g_KCDProcess;
+extern PROC_INIT g_CRTProcess;
 extern PROC_INIT timerProcess;
 extern PROC_INIT UARTProcess;
 extern PROC_INIT g_SetPriorityProcess;
@@ -61,10 +61,10 @@ void process_init() {
     setStressTestProcesses();
 
     // system processes
-	g_proc_table[NULL_PROCESS].m_pid = nullProcess.m_pid;
-	g_proc_table[NULL_PROCESS].m_priority = nullProcess.m_priority;
-	g_proc_table[NULL_PROCESS].m_stack_size = nullProcess.m_stack_size;
-	g_proc_table[NULL_PROCESS].mpf_start_pc = nullProcess.mpf_start_pc;
+	g_proc_table[NULL_PROCESS].m_pid = g_NullProcess.m_pid;
+	g_proc_table[NULL_PROCESS].m_priority = g_NullProcess.m_priority;
+	g_proc_table[NULL_PROCESS].m_stack_size = g_NullProcess.m_stack_size;
+	g_proc_table[NULL_PROCESS].mpf_start_pc = g_NullProcess.mpf_start_pc;
     
     g_proc_table[PROCESS_SET_PRIORITY].m_pid = g_SetPriorityProcess.m_pid;
 	g_proc_table[PROCESS_SET_PRIORITY].m_priority = g_SetPriorityProcess.m_priority;
@@ -76,15 +76,15 @@ void process_init() {
 	g_proc_table[CLOCK_PROCESS].m_stack_size = g_ClockProcess.m_stack_size;
 	g_proc_table[CLOCK_PROCESS].mpf_start_pc = g_ClockProcess.mpf_start_pc;
     
-    g_proc_table[KCD_PROCESS].m_pid = KCDProcess.m_pid;
-	g_proc_table[KCD_PROCESS].m_priority = KCDProcess.m_priority;
-	g_proc_table[KCD_PROCESS].m_stack_size = KCDProcess.m_stack_size;
-	g_proc_table[KCD_PROCESS].mpf_start_pc = KCDProcess.mpf_start_pc;
+    g_proc_table[KCD_PROCESS].m_pid = g_KCDProcess.m_pid;
+	g_proc_table[KCD_PROCESS].m_priority = g_KCDProcess.m_priority;
+	g_proc_table[KCD_PROCESS].m_stack_size = g_KCDProcess.m_stack_size;
+	g_proc_table[KCD_PROCESS].mpf_start_pc = g_KCDProcess.mpf_start_pc;
     
-    g_proc_table[CRT_PROCESS].m_pid = CRTProcess.m_pid;
-	g_proc_table[CRT_PROCESS].m_priority = CRTProcess.m_priority;
-	g_proc_table[CRT_PROCESS].m_stack_size = CRTProcess.m_stack_size;
-	g_proc_table[CRT_PROCESS].mpf_start_pc = CRTProcess.mpf_start_pc;
+    g_proc_table[CRT_PROCESS].m_pid = g_CRTProcess.m_pid;
+	g_proc_table[CRT_PROCESS].m_priority = g_CRTProcess.m_priority;
+	g_proc_table[CRT_PROCESS].m_stack_size = g_CRTProcess.m_stack_size;
+	g_proc_table[CRT_PROCESS].mpf_start_pc = g_CRTProcess.mpf_start_pc;
     
     g_proc_table[TIMER_IPROCESS].m_pid = timerProcess.m_pid;
 	g_proc_table[TIMER_IPROCESS].m_priority = timerProcess.m_priority;
