@@ -11,10 +11,13 @@
 #include "rtx.h"
 #include "Polling/uart_polling.h"
 #include "Utilities/String.h"
+#include "PerformanceTimer.h"
 
 #ifdef DEBUG_0
 #include "printf.h"
-#endif /* ! DEBUG_0 */
+#elif DEBUG_PERFORMANCE
+#include "printf.h"
+#endif /* DEBUG_0 || DEBUG_PERFORMANCE */
 
 /* --Definition-- */
 #define NUM_BLOCK 40
@@ -29,10 +32,27 @@ void set_test_procs() {
 	int i;
 	
 	for (i = 0; i < NUM_TEST_PROCS; i++) {
-		g_test_procs[i].m_pid = (U32)(i+1);
+		g_test_procs[i].m_pid = (U32)(i + 1);
 		g_test_procs[i].m_stack_size = 0x100;
 	}
 
+#ifdef DEBUG_PERFORMANCE
+    // replace regular user processes with performance testing processes
+    // if we're in performance testing mode
+    g_test_procs[0].m_priority = HIGH;
+	g_test_procs[1].m_priority = HIGH;
+	g_test_procs[2].m_priority = HIGH;
+	g_test_procs[3].m_priority = LOW;
+	g_test_procs[4].m_priority = LOW;
+	g_test_procs[5].m_priority = LOW;
+	
+	g_test_procs[0].mpf_start_pc = &requestMemoryBlockPerformance;
+	g_test_procs[1].mpf_start_pc = &sendMessagePerformance;
+	g_test_procs[2].mpf_start_pc = &receiveMessagePerformance;
+	g_test_procs[3].mpf_start_pc = &performanceDummy1;
+	g_test_procs[4].mpf_start_pc = &performanceDummy2;
+	g_test_procs[5].mpf_start_pc = &performanceDummy3;
+#else    
 	g_test_procs[0].m_priority = HIGH;
 	g_test_procs[1].m_priority = HIGH;
 	g_test_procs[2].m_priority = MEDIUM;
@@ -40,13 +60,13 @@ void set_test_procs() {
 	g_test_procs[4].m_priority = LOW;
 	g_test_procs[5].m_priority = LOW;
 	
- 
 	g_test_procs[0].mpf_start_pc = &proc1;
 	g_test_procs[1].mpf_start_pc = &proc2;
 	g_test_procs[2].mpf_start_pc = &proc3;
 	g_test_procs[3].mpf_start_pc = &proc4;
 	g_test_procs[4].mpf_start_pc = &proc5;
 	g_test_procs[5].mpf_start_pc = &proc6;
+#endif
 }
 
 /**
@@ -361,3 +381,104 @@ void proc6(void) {
 		release_processor();
 	}
 }
+
+#ifdef DEBUG_PERFORMANCE
+void requestMemoryBlockPerformance(void) {
+    uint32_t testTime;
+    int i;
+    int j;
+    
+    printf("Testing request memory block performance:\r\n");
+    
+    for (i = 0; i < 30; i++) {
+        performanceTimerStart();
+        for (j = 0; j < 1000000; j++) {
+            request_memory_block();
+        }
+        testTime = performanceTimerEnd();
+        printf("%d\r\n", testTime);
+    }
+    
+    // finished testing request memory performance
+    // preempt ourself (goes to send message performance test)
+    set_process_priority(PROCESS_1, LOWEST);
+    
+    while (1) {
+        release_processor();
+    }
+}
+
+void sendMessagePerformance(void) {
+    uint32_t testTime;
+    Letter* testMessage;
+    int i;
+    int j;
+    
+    printf("Testing send message performance:\r\n");
+    
+    testMessage = (Letter*)request_memory_block();
+    testMessage->m_Type = DEFAULT;
+    strcpy("Test", testMessage->m_Text);
+    
+    for (i = 0; i < 30; i++) {
+        performanceTimerStart();
+        for (j = 0; j < 1000000; j++) {
+            send_message(PROCESS_3, (void*)testMessage);
+        }
+        testTime = performanceTimerEnd();
+        printf("%d\r\n", testTime);
+    }
+    
+    // finished testing send message performance
+    // preempt ourself (goes to receive message performance test)
+    set_process_priority(PROCESS_2, LOWEST);
+    
+    while (1) {
+        release_processor();
+    }
+}
+
+void receiveMessagePerformance(void) {
+    uint32_t testTime;
+    int sender;
+    int i;
+    int j;
+    
+    printf("Testing receive message performance:\r\n");
+    
+    for (i = 0; i < 30; i++) {
+        performanceTimerStart();
+        for (j = 0; j < 1000000; j++) {
+            receive_message(&sender);
+        }
+        testTime = performanceTimerEnd();
+        printf("%d\r\n", testTime);
+    }
+    
+    // finished testing receive message performance
+    // preempt ourself (goes to dummy processes)
+    set_process_priority(PROCESS_3, LOWEST);
+    
+    while (1) {
+        release_processor();
+    }
+}
+
+void performanceDummy1(void) {
+    while (1) {
+        release_processor();
+    }
+}
+
+void performanceDummy2(void) {
+    while (1) {
+        release_processor();
+    }
+}
+
+void performanceDummy3(void) {
+    while (1) {
+        release_processor();
+    }
+}
+#endif /*DEBUG_PERFORMANCE */

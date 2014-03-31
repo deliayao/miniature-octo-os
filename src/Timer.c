@@ -19,7 +19,7 @@ volatile uint32_t g_timer_count = 0; // increment every 1 ms
 PROC_INIT timerProcess; // for timer i-process PCB
 
 /**
- * @brief: initialize timer. Only timer 0 is supported
+ * @brief: initialize timer. 
  */
 uint32_t timer_init(uint8_t n_timer) 
 {
@@ -57,8 +57,8 @@ uint32_t timer_init(uint8_t n_timer)
 		*/
 		pTimer = (LPC_TIM_TypeDef *) LPC_TIM0;
 
-	} else { /* other timer not supported yet */
-		return 1;
+	} else if (n_timer == 1) { // performance timer
+		pTimer = (LPC_TIM_TypeDef *) LPC_TIM1;
 	}
 
 	/*
@@ -87,8 +87,12 @@ uint32_t timer_init(uint8_t n_timer)
 
 	g_timer_count = 0;
 
-	/* Step 4.4: CSMSIS enable timer0 IRQ */
-	NVIC_EnableIRQ(TIMER0_IRQn);
+	/* Step 4.4: CSMSIS enable timer IRQ */
+	if (n_timer == 0) {
+		NVIC_EnableIRQ(TIMER0_IRQn);
+	} else if (n_timer == 1) {
+        NVIC_EnableIRQ(TIMER1_IRQn);
+    }
 
 	/* Step 4.5: Enable the TCR. See table 427 on pg494 of LPC17xx_UM. */
 	pTimer->TCR = 1;

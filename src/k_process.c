@@ -273,7 +273,9 @@ int k_send_message(int process_id, void *message_envelope) {
         
         // preempt current process if destination process has higher priority and is blocked on receive
         if (destination->m_Priority < currentProcess->m_Priority) {
+#ifndef DEBUG_PERFORMANCE // do not preempt if we're in performance testing mode
             return k_release_processor();
+#endif /* !DEBUG_PERFORMANCE */
         }
     }
     
@@ -302,7 +304,12 @@ int deliverMessage(int sourceProcess, int envelopeDestinationProcess, int destin
 	U32 node = (U32)message - sizeof(Envelope) - sizeof(Node); // for error checking
 	
 	if (!isValidNode(&heap, (Node*)node)) { // make sure it's a valid memory block
+// during performance testing, we repeatedly try to send a message using a dummy memory block
+// so the memory block will be invalid, but we want to send it anyway
+// so do not return here
+#ifndef DEBUG_PERFORMANCE
 		return RTX_ERR;
+#endif /* DEBUG_PERFORMANCE */
 	}
 	
 	node += sizeof(Node);

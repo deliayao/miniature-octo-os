@@ -14,7 +14,11 @@ Node* dequeueNode(MemoryQueue* queue) {
     Node* front = queue->m_First; // this will be NULL if queue is empty
 
     if (queue->m_First != NULL) {
+// during performance testing mode, don't modify m_First
+// always return the first memory block in the queue
+#ifndef DEBUG_PERFORMANCE
         queue->m_First = queue->m_First->m_Next;
+#endif /* DEBUG_PERFORMANCE */       
 
         // this is true if the queue only had one element
         if (queue->m_First == NULL) {

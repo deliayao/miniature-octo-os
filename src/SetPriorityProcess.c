@@ -29,13 +29,19 @@ void initializeSetPriorityProcess(void) {
 
 void runSetPriorityProcess(void) {
     Letter* message;
+    
+// don't send messages to KCD in performance testing mode
+// because the primitives will be modified,
+// and doing so messes with the scheduling of the performance tests
+#ifndef DEBUG_PERFORMANCE
     Letter* registerCommand;
     
-    // register the commands to kcd
+    // register set priority commands to KCD
     registerCommand = (Letter*)request_memory_block();  
     registerCommand->m_Type = KCD_REG;
     strcpy("%C", registerCommand->m_Text);
     send_message(KCD_PROCESS, (void*)registerCommand);
+#endif /* !DEBUG_PERFORMANCE */
     
     while (1) {
         int commandLength;

@@ -20,7 +20,9 @@
 
 #ifdef DEBUG_0
 #include "printf.h"
-#endif /* ! DEBUG_0 */
+#elif DEBUG_PERFORMANCE
+#include "printf.h"
+#endif /* DEBUG_0 || DEBUG_PERFORMANCE */
 
 int main() {
 	/* CMSIS system initialization */
@@ -28,7 +30,9 @@ int main() {
 
 #ifdef DEBUG_0
 	init_printf(NULL, putc);
-#endif /* ! DEBUG_0 */
+#elif DEBUG_PERFORMANCE
+    init_printf(NULL, putc);
+#endif /* DEBUG_0 || DEBUG_PERFORMANCE */
 
 	/* start the RTX and built-in processes */
 	rtx_init();  

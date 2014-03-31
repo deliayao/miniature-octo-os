@@ -348,7 +348,7 @@
             <uSurpInc>0</uSurpInc>
             <VariousControls>
               <MiscControls></MiscControls>
-              <Define>_DEBUG_HOTKEYS</Define>
+              <Define>DEBUG_PERFORMANCE _DEBUG_HOTKEYS</Define>
               <Undefine></Undefine>
               <IncludePath></IncludePath>
             </VariousControls>
@@ -490,6 +490,16 @@
               <FileName>UART.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\src\UART.h</FilePath>
+            </File>
+            <File>
+              <FileName>PerformanceTimer.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\PerformanceTimer.c</FilePath>
+            </File>
+            <File>
+              <FileName>PerformanceTimer.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\src\PerformanceTimer.h</FilePath>
             </File>
           </Files>
         </Group>
@@ -1164,6 +1174,16 @@
               <FileName>UART.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\src\UART.h</FilePath>
+            </File>
+            <File>
+              <FileName>PerformanceTimer.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\PerformanceTimer.c</FilePath>
+            </File>
+            <File>
+              <FileName>PerformanceTimer.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\src\PerformanceTimer.h</FilePath>
             </File>
           </Files>
         </Group>

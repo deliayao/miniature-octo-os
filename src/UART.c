@@ -265,7 +265,7 @@ void c_UART0_IRQHandler(void)
         character = pUart->RBR;
 #ifdef DEBUG_0
         uart1_put_string("Reading a char = ");
-        uart1_put_char(g_char_in);
+        uart1_put_char(character);
         uart1_put_string("\n\r");
 #endif // DEBUG_0
         

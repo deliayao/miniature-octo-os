@@ -17,4 +17,14 @@ void proc4(void);
 void proc5(void);
 void proc6(void);
 
+#ifdef DEBUG_PERFORMANCE
+// user processes for performance testing mode
+void requestMemoryBlockPerformance(void);
+void sendMessagePerformance(void);
+void receiveMessagePerformance(void);
+void performanceDummy1(void);
+void performanceDummy2(void);
+void performanceDummy3(void);
+#endif /*DEBUG_PERFORMANCE */
+
 #endif /* USR_PROC_H_ */

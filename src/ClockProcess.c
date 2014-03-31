@@ -58,9 +58,11 @@ void runClockProcess(void) {
     Letter* message; // message to be received into this pointer
     int sender;
     
+#ifndef DEBUG_PERFORMANCE
     Letter* registerCommandWS;
     Letter* registerCommandWT;
     Letter* registerCommandWR;
+#endif /* !DEBUG_PERFORMANCE */
     
     // initialize flags
     s_IgnoreNext = 0;
@@ -68,7 +70,11 @@ void runClockProcess(void) {
     
     // initialize clock string
     resetClock();
-    
+
+// don't send messages to KCD in performance testing mode
+// because the primitives will be modified,
+// and doing so messes with the scheduling of the performance tests
+#ifndef DEBUG_PERFORMANCE
     // register wall clock commands to KCD
     registerCommandWS = (Letter*)request_memory_block();    
     registerCommandWS->m_Type = KCD_REG;
@@ -84,6 +90,7 @@ void runClockProcess(void) {
     registerCommandWR->m_Type = KCD_REG;
     strcpy("%WR", registerCommandWR->m_Text);
     send_message(KCD_PROCESS, (void*)registerCommandWR);
+#endif /* !DEBUG_PERFORMANCE */
     
     while (1) {
         message = (Letter*)receive_message(&sender);
