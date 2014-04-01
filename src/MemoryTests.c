@@ -15,32 +15,40 @@
 #define FAIL 0
 #define PASS 1
 
-// test processes initialization table
+/**
+ * Test process initialization table items. Initialized with values on a
+ * set_test_procs() call.
+ */
 PROC_INIT g_test_procs[NUM_TEST_PROCS];
 
-// store all memory blocks
-U32 memoryBlocks[NUM_BLOCKS];
-
 // for testing
-extern int usedCount;
-extern int availableCount;
+extern int g_AvailableCount;
+extern int g_UsedCount;
 
-int passed[3] = { PASS };
+/**
+ * Array for storing memory blocks during testing.
+ */
+static U32 s_MemoryBlocks[NUM_BLOCKS];
+
+/**
+ * Array for storing test results.
+ */
+static int s_Passed[3] = { PASS };
 
 /*
  * Tests:
  * 1) Deplete memory: request all memory blocks
  *        Pass conditions:
- *        - usedCount = NUM_BLOCKS
- *        - availableCount = 0
+ *        - g_UsedCount = NUM_BLOCKS
+ *        - g_AvailableCount = 0
  *        - request() is blocked
  * 2) Release memory success
  *        Pass conditions:
  *        - all release_memory_block() operations return sucess
  * 3) Release some memory
  *        Pass conditions:
- *        - usedCount != NUM_BLOCKS
- *        - availableCount != 0
+ *        - g_UsedCount != NUM_BLOCKS
+ *        - g_AvailableCount != 0
  *        - request() is unblocked
  *         
 */
@@ -68,7 +76,7 @@ void set_test_procs() {
 	g_test_procs[5].mpf_start_pc = &dummy3;
     
     for (i = 0; i < 3; i++) {
-        passed[i] = PASS;
+        s_Passed[i] = PASS;
     }
 }
 
@@ -76,19 +84,19 @@ void request(void) {
     int i;
     
     while (1) {
-        // assert usedCount = 0 and availableCount = 40
-        if (usedCount != 0 || availableCount != NUM_BLOCKS) {
-            passed[0] = FAIL;
+        // assert g_UsedCount = 0 and g_AvailableCount = 40
+        if (g_UsedCount != 0 || g_AvailableCount != NUM_BLOCKS) {
+            s_Passed[0] = FAIL;
         }
         
         for (i = 0; i < NUM_BLOCKS + 1; i++) { // request the number of available blocks + 1
             // this will block when i = 40, until a memory block is released
-            memoryBlocks[i] = (U32)request_memory_block();
+            s_MemoryBlocks[i] = (U32)request_memory_block();
         }
         
-        // assert usedCount = 40 and availableCount = 0
-        if (usedCount != NUM_BLOCKS || availableCount != 0) {
-            passed[0] = FAIL;
+        // assert g_UsedCount = 40 and g_AvailableCount = 0
+        if (g_UsedCount != NUM_BLOCKS || g_AvailableCount != 0) {
+            s_Passed[0] = FAIL;
         }
         
         // lower priority, effectively inactivates this process
@@ -101,21 +109,21 @@ void release(void) {
         int i;
         int release = 10; // release 10 memory blocks
         
-        // assert usedCount = 40 and availableCount = 0
-        if (usedCount != NUM_BLOCKS || availableCount != 0) {
-            passed[0] = FAIL;
+        // assert g_UsedCount = 40 and g_AvailableCount = 0
+        if (g_UsedCount != NUM_BLOCKS || g_AvailableCount != 0) {
+            s_Passed[0] = FAIL;
         }
         
         for (i = 0; i < release; i++) {
             // check success of release operation
-            if (release_memory_block((void*)memoryBlocks[i]) == RTX_ERR) {
-                passed[1] = FAIL;
+            if (release_memory_block((void*)s_MemoryBlocks[i]) == RTX_ERR) {
+                s_Passed[1] = FAIL;
             }
         }
         
-        // assert usedCount = 31 and availableCount = 9
-        if (usedCount != NUM_BLOCKS - release + 1 || availableCount != release - 1) {
-            passed[2] = FAIL;
+        // assert g_UsedCount = 31 and g_AvailableCount = 9
+        if (g_UsedCount != NUM_BLOCKS - release + 1 || g_AvailableCount != release - 1) {
+            s_Passed[2] = FAIL;
         }
         
         // lower priority, effectively inactivates this process
@@ -129,19 +137,19 @@ void results(void) {
     while (1) {
         // print results once request() and release() have complete
         if (!completed && get_process_priority(PROCESS_1) == LOWEST && get_process_priority(PROCESS_2) == LOWEST) {
-            if (passed[0] == PASS) {
+            if (s_Passed[0] == PASS) {
                 uart1_put_string("Request memory: OK");
             } else {
                 uart1_put_string("Request memory: FAILED");
             }
             uart1_put_string("\r\n");
-            if (passed[1] == PASS) {
+            if (s_Passed[1] == PASS) {
                 uart1_put_string("Release memory: OK");
             } else {
                 uart1_put_string("Release memory: FAILED");
             }
             uart1_put_string("\r\n");
-            if (passed[2] == PASS) {
+            if (s_Passed[2] == PASS) {
                 uart1_put_string("Remaining memory: OK");
             } else {
                 uart1_put_string("Remaining memory: FAILED");
@@ -170,4 +178,3 @@ void dummy3(void) {
         release_processor();
     }
 }
-

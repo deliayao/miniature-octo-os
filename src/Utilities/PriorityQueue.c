@@ -28,10 +28,10 @@ PCB* dequeueHighest(PriorityQueue* priorityQueue) {
 }
 
 int enqueueAtPriority(PriorityQueue* priorityQueue, PCB* process) {
-	if (process->m_Priority < PRIVILEGED || process->m_Priority > NULL_PRIORITY) {
-		return -1;
-	}
-	return enqueue(getQueueAtPriority(priorityQueue, process->m_Priority), process);
+    if (process->m_Priority < PRIVILEGED || process->m_Priority > NULL_PRIORITY) {
+        return -1;
+    }
+    return enqueue(getQueueAtPriority(priorityQueue, process->m_Priority), process);
 }
 
 ProcessQueue* getQueueAtPriority(PriorityQueue* priorityQueue, int priority) {
@@ -39,31 +39,20 @@ ProcessQueue* getQueueAtPriority(PriorityQueue* priorityQueue, int priority) {
 }
 
 void initializePriorityQueue(PriorityQueue* priorityQueue) {
-	int i;
-	for (i = 0; i < NUM_PRIORITIES; ++i) {
-		initializeQueue(getQueueAtPriority(priorityQueue, i));
-	}
+    int i;
+    for (i = 0; i < NUM_PRIORITIES; ++i) {
+        initializeQueue(getQueueAtPriority(priorityQueue, i));
+    }
 }
 
 int isEmptyPriorityQueue(PriorityQueue* priorityQueue) {
-	int i;
-	for (i = 0; i < NUM_PRIORITIES; ++i) {
-		if (!isEmptyProcessQueue(&priorityQueue->m_Queues[i])) {
-			return 0;
-		}
-	}
-	return 1;
-}
-
-int updateProcessPriority(PriorityQueue* queue, int processId, int oldPriority, int newPriority) {
-	PCB* process = removeProcess(getQueueAtPriority(queue, oldPriority), processId);
-	
-	if (process == NULL) {
-		return 0; // error
-	} else {
-		process->m_Priority = newPriority;
-		return enqueue(getQueueAtPriority(queue, newPriority), process);
-	}
+    int i;
+    for (i = 0; i < NUM_PRIORITIES; ++i) {
+        if (!isEmptyProcessQueue(&priorityQueue->m_Queues[i])) {
+            return 0;
+        }
+    }
+    return 1;
 }
 
 void serializePriorityQueue(PriorityQueue* priorityQueue, char message[],  int startIndex) {
@@ -78,11 +67,22 @@ void serializePriorityQueue(PriorityQueue* priorityQueue, char message[],  int s
         j++;
         message[j] = ' ';
         j++;
-		j = serializeProcessQueue(&priorityQueue->m_Queues[i], message, j);
-				message[j] = '\r';
+        j = serializeProcessQueue(&priorityQueue->m_Queues[i], message, j);
+        message[j] = '\r';
         j++;
         message[j] = '\n';
         j++;
-	}
+    }
     message[j] = '\0';
+}
+
+int updateProcessPriority(PriorityQueue* queue, int processId, int oldPriority, int newPriority) {
+    PCB* process = removeProcess(getQueueAtPriority(queue, oldPriority), processId);
+    
+    if (process == NULL) {
+        return 0; // error
+    } else {
+        process->m_Priority = newPriority;
+        return enqueue(getQueueAtPriority(queue, newPriority), process);
+    }
 }

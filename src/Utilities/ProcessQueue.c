@@ -45,55 +45,53 @@ void initializeQueue(ProcessQueue* queue) {
 }
 
 int isEmptyProcessQueue(ProcessQueue* queue) {
-	return queue->m_First == NULL;
-}
-
-PCB* removeProcess(ProcessQueue* queue, int processId) {
-	PCB* currentProcess = queue->m_First;
-	PCB* nextProcess = queue->m_First;
-	
-	if (currentProcess->m_PID == processId) {
-		queue->m_First = currentProcess->m_Next;
-		if (queue->m_First == NULL) {
-			queue->m_Last = NULL;
-		}
-		return currentProcess;
-	}
-	
-	while (currentProcess != NULL) {
-		nextProcess = currentProcess->m_Next;
-		if (nextProcess != NULL && nextProcess->m_PID == processId) {
-			currentProcess->m_Next = nextProcess->m_Next;
-			if (currentProcess->m_Next == NULL) {
-				queue->m_Last = NULL;
-			}
-			return nextProcess;
-		}
-		currentProcess = nextProcess;
-	}
-	return (PCB*)NULL;
+    return queue->m_First == NULL;
 }
 
 int isIProcess(int processID) {
     return (processID == TIMER_IPROCESS || processID == UART_IPROCESS);
 }
 
+PCB* removeProcess(ProcessQueue* queue, int processId) {
+    PCB* currentProcess = queue->m_First;
+    PCB* nextProcess = queue->m_First;
+    
+    if (currentProcess->m_PID == processId) {
+        queue->m_First = currentProcess->m_Next;
+        if (queue->m_First == NULL) {
+            queue->m_Last = NULL;
+        }
+        return currentProcess;
+    }
+    
+    while (currentProcess != NULL) {
+        nextProcess = currentProcess->m_Next;
+        if (nextProcess != NULL && nextProcess->m_PID == processId) {
+            currentProcess->m_Next = nextProcess->m_Next;
+            if (currentProcess->m_Next == NULL) {
+                queue->m_Last = NULL;
+            }
+            return nextProcess;
+        }
+        currentProcess = nextProcess;
+    }
+    return (PCB*)NULL;
+}
+
 int serializeProcessQueue(ProcessQueue* queue, char message[], int startIndex) {
     int j = startIndex;
     PCB* currentProcess = queue->m_First;
-	
-	while (currentProcess != NULL) {
-		
-				if (currentProcess->m_PID / 10 > 0) {// assuming less than 99 processes
-						message[j] = (currentProcess->m_PID/10) + '0';
-						j++;
-				}
+    
+    while (currentProcess != NULL) {
+        if (currentProcess->m_PID / 10 > 0) { // assuming less than 99 processes
+            message[j] = (currentProcess->m_PID/10) + '0';
+            j++;
+        }
         message[j] = (currentProcess->m_PID % 10) + '0';
         j++;
         message[j] = ' ';
         j++;
-        
-		currentProcess = currentProcess->m_Next;
-	}
+        currentProcess = currentProcess->m_Next;
+    }
     return j;
 }

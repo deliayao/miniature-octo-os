@@ -8,36 +8,73 @@
 
 #include "Types.h"
 
+/**
+ * Queue structure for managing messages. Wraps a first and last pointer.
+ */
 typedef struct MessageQueue {
     Envelope* m_First;
     Envelope* m_Last;
 } MessageQueue;
 
-// removes and returns the first Envelope of the queue
-// returns NULL if the queue is empty
-Envelope* dequeueEnvelope(MessageQueue*);
+/**
+ * Removes the first Envelope of the queue.
+ * 
+ * @param   queue The message queue to operate on.
+ * @return  The first Envelope of the queue, or NULL if the queue is empty.
+ */
+Envelope* dequeueEnvelope(MessageQueue* queue);
 
-// removes and returns the first Envelope of the queue as a Letter*
-// returns NULL if the queue is empty
-Letter* dequeueLetter(MessageQueue*);
+/**
+ * Removes the first Envelope of the queue.
+ * 
+ * @param   queue The message queue to operate on.
+ * @return  The first Envelope of the queue, modified to only expose the Letter
+ *          portion; or NULL if the queue is empty.
+ */
+Letter* dequeueLetter(MessageQueue* queue);
 
-// adds the specified Envelope to the back of the queue
-// returns the success/failure of the operation
-int enqueueEnvelope(MessageQueue*, Envelope*);
+/**
+ * Adds the specified Envelope to the back of the queue.
+ * 
+ * @param   queue The message queue to operate on.
+ * @param   envelope The Envelope to add.
+ * @return  The success (RTX_OK) or failure (RTX_ERR) of the operation.
+ */
+int enqueueEnvelope(MessageQueue* queue, Envelope* envelope);
 
-// adds the specified Letter to the back of the queue
-// returns the success/failure of the operation
-int enqueueLetter(MessageQueue*, Letter*);
+/**
+ * Converts the specified Letter to an Envelope and adds it to the back of the
+ * queue.
+ * 
+ * @param   queue The message queue to operate on.
+ * @param   letter The Letter to add.
+ * @return  The success (RTX_OK) or failure (RTX_ERR) of the operation.
+ */
+int enqueueLetter(MessageQueue* queue, Letter* letter);
 
-// initializes the queue
-void initializeMessageQueue(MessageQueue*);
+/**
+ * Initializes the queue.
+ * 
+ * @param   queue The message queue to operate on.
+ */
+void initializeMessageQueue(MessageQueue* queue);
 
-// inserts the envelope at the correct position
-// (queue is sorted by ascending expiry time)
-// returns the success of the operation
-int insertEnvelope(MessageQueue*, Envelope*);
+/**
+ * Inserts the specified Envelope at the correct position in the queue (queue
+ * is sorted by ascending expiry time).
+ * 
+ * @param   queue The message queue to operate on.
+ * @param   envelope The Envelope to add.
+ * @return  The success (RTX_OK) or failure (RTX_ERR) of the operation.
+ */
+int insertEnvelope(MessageQueue* queue, Envelope* envelope);
 
-// returns 1 if the queue is empty
-int isEmptyMessageQueue(MessageQueue*);
+/**
+ * Checks whether the queue is empty.
+ * 
+ * @param   queue The message queue to operate on.
+ * @return  1 if the queue is empty, 0 otherwise.
+ */
+int isEmptyMessageQueue(MessageQueue* queue);
 
 #endif /*_MESSAGE_QUEUE_*/

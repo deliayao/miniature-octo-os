@@ -7,40 +7,90 @@
 #define _PRIORITY_QUEUE_
 
 #include "Definitions.h"
-#include "Types.h"
 #include "ProcessQueue.h"
+#include "Types.h"
 
+/**
+ * Priority queue structure for managing processes. Contains an underlying
+ * array of process queues; one queue for each priority level.
+ */
 typedef struct PriorityQueue {
-    ProcessQueue m_Queues[NUM_PRIORITIES]; // underlying array of queues
-                                       // one queue for each priority level
+    ProcessQueue m_Queues[NUM_PRIORITIES];
 } PriorityQueue;
 
-// removes and returns the first PCB of the specified queue
-// returns NULL if the queue is empty
-PCB* dequeueAtPriority(PriorityQueue*, int);
+/**
+ * Removes the first PCB of the queue at the specified priority.
+ * 
+ * @param   priorityQueue The priority queue to operate on.
+ * @param   priority The priority at which to dequeue.
+ * @return  The first PCB of the specified queue, or NULL if the specified
+ *          queue is empty.
+ */
+PCB* dequeueAtPriority(PriorityQueue* priorityQueue, int priority);
 
-// removes and returns the first PCB of the highest priority queue that isn't empty
-// returns NULL if all of the queues are empty
-PCB* dequeueHighest(PriorityQueue*);
+/**
+ * Removes the first PCB of the highest level queue that is not empty.
+ * 
+ * @param   priorityQueue The priority queue to operate on.
+ * @return  The first PCB of the highest level queue, or NULL if all queues are
+ *          empty.
+ */
+PCB* dequeueHighest(PriorityQueue* priorityQueue);
 
-// adds the PCB to the back of the queue specified by the PCB's priority
-// returns the success/failure of the operation
-int enqueueAtPriority(PriorityQueue*, PCB*);
+/**
+ * Adds the specified PCB to the back of the queue specified by the PCB's
+ * priority.
+ * 
+ * @param   priorityQueue The priority queue to operate on.
+ * @param   process The PCB to add.
+ * @return  The success (1) or failure (0) of the operation.
+ */
+int enqueueAtPriority(PriorityQueue* priorityQueue, PCB* process);
 
-// returns a pointer to the queue at the specified priority
-ProcessQueue* getQueueAtPriority(PriorityQueue*, int);
+/**
+ * Gets the queue at the specified priority level.
+ * 
+ * @param   priorityQueue The priority queue to operate on.
+ * @param   priority The priority of interest.
+ * @return  A pointer to the queue at the specified priority.
+ */
+ProcessQueue* getQueueAtPriority(PriorityQueue* priorityQueue, int priority);
 
-// initializes the priority queue
-void initializePriorityQueue(PriorityQueue*);
+/**
+ * Initializes the priority queue.
+ * 
+ * @param   priorityQueue The priority queue to operate on.
+ */
+void initializePriorityQueue(PriorityQueue* priorityQueue);
 
-// returns 1 if the priority queue is empty
-int isEmptyPriorityQueue(PriorityQueue*);
+/**
+ * Checks whether the priority queue is empty.
+ * 
+ * @param   priorityQueue The priority queue to operate on.
+ * @return  1 if the priority queue is empty, 0 otherwise.
+ */
+int isEmptyPriorityQueue(PriorityQueue* priorityQueue);
 
-// attempts to find process at given old priority and update it to new priority
-// returns the success/failure of the operation
-int updateProcessPriority(PriorityQueue*, int processId, int oldPriority, int newPriority);
+/**
+ * Serializes the priority queue. For debugging.
+ * 
+ * @param   priorityQueue The priority queue to operate on.
+ * @param   message Memory to write to.
+ * @param   startIndex First index to write to.
+ */
+void serializePriorityQueue(PriorityQueue* priorityQueue, char message[],  int startIndex);
 
-// serializes priorty queue by putting a string containing each process and its priority into the memory found at 'message,' writing to it starting at startIndex
-void serializePriorityQueue(PriorityQueue*, char [],  int startIndex);
+/**
+ * Attemps to find the process at the given old priority and update it to the
+ * new priority.
+ * 
+ * @param   priorityQueue The priority queue to operate on.
+ * @param   processId The process to update.
+ * @param   oldPriority The old priority of the process.
+ * @param   newPriority The priority to change to.
+ * @return  1 if the operation was successful, 0 if the process was not found
+ *          at the given priority.
+ */
+int updateProcessPriority(PriorityQueue* priorityQueue, int processId, int oldPriority, int newPriority);
 
 #endif /* _PRIORITY_QUEUE_ */

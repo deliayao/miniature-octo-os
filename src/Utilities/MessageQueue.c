@@ -68,9 +68,9 @@ int insertEnvelope(MessageQueue* queue, Envelope* envelope) {
         return RTX_OK;
     }
     
-	currentEnvelope = queue->m_First;
+    currentEnvelope = queue->m_First;
     nextEnvelope = currentEnvelope->m_Next;
-	
+    
     while (currentEnvelope != queue->m_Last && envelope->m_Expiry >= nextEnvelope->m_Expiry) {
         currentEnvelope = nextEnvelope;
         nextEnvelope = currentEnvelope->m_Next;

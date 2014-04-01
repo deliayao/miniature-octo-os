@@ -1,17 +1,19 @@
 /** 
  * @file:   k_rtx.h
- * @brief:  kernel definitions and data structure header file
+ * @brief:  Kernel process initialization data structure.
  */
  
 #ifndef K_RTX_H_
 #define K_RTX_H_
 
-/* initialization table item */
+/**
+ * Process table initialization item.
+ */
 typedef struct proc_init {
-	int m_pid;	        /* process id */ 
-	int m_priority;         /* initial priority, not used in this example. */ 
-	int m_stack_size;       /* size of stack in words */
-	void (*mpf_start_pc) ();/* entry point of the process */    
+    int m_pid; // process ID
+    int m_priority; // process priority
+    int m_stack_size; // size of process stack in words
+    void (*mpf_start_pc) (); // process entry point  
 } PROC_INIT;
 
 #endif // ! K_RTX_H_

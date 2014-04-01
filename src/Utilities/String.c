@@ -8,7 +8,7 @@
 int strcont(char source[], char find) {
     int count = 0;
     
-	while (source[count] != '\0') {
+    while (source[count] != '\0') {
         if (source[count] == find) {
             return 1;
         }
