@@ -1,111 +1,118 @@
 /**
- * @brief timer.c - Timer example code. Tiemr IRQ is invoked every 1ms
- * @author T. Reidemeister
- * @author Y. Huang
- * @author NXP Semiconductors
- * @date 2012/02/12
+ * @file:   Timer.c
+ * @brief:  Timer and timer i-process implementation.
  */
 
 #include "Timer.h"
 
-#include "Utilities/Definitions.h"
 #include "k_process.h"
+#include "Utilities/Definitions.h"
 
 #include <LPC17xx.h>
 
-static MessageQueue centralMailbox; // temporary mailbox for delayed send
-volatile uint32_t g_timer_count = 0; // increment every 1 ms
-
-PROC_INIT timerProcess; // for timer i-process PCB
+/*
+ * Counter for the timer. Increments every 1 ms.
+ */
+volatile uint32_t g_timer_count = 0;
 
 /**
- * @brief: initialize timer. 
+ * Timer i-process initialization table item. Initialized with values on an
+ * initializeTimerProcess() call.
  */
-uint32_t timer_init(uint8_t n_timer) 
-{
-	LPC_TIM_TypeDef *pTimer;
-	if (n_timer == 0) {
-		/*
-		Steps 1 & 2: system control configuration.
-		Under CMSIS, system_LPC17xx.c does these two steps
-		
-		----------------------------------------------------- 
-		Step 1: Power control configuration.
-		        See table 46 pg63 in LPC17xx_UM
-		-----------------------------------------------------
-		Enable UART0 power, this is the default setting
-		done in system_LPC17xx.c under CMSIS.
-		Enclose the code for your refrence
-		//LPC_SC->PCONP |= BIT(1);
-	
-		-----------------------------------------------------
-		Step2: Select the clock source, 
-		       default PCLK=CCLK/4 , where CCLK = 100MHZ.
-		       See tables 40 & 42 on pg56-57 in LPC17xx_UM.
-		-----------------------------------------------------
-		Check the PLL0 configuration to see how XTAL=12.0MHZ 
-		gets to CCLK=100MHZ in system_LPC17xx.c file.
-		PCLK = CCLK/4, default setting in system_LPC17xx.c.
-		Enclose the code for your reference
-		//LPC_SC->PCLKSEL0 &= ~(BIT(3)|BIT(2));	
+PROC_INIT g_TimerProcess;
 
-		-----------------------------------------------------
-		Step 3: Pin Ctrl Block configuration. 
-		        Optional, not used in this example
-		        See Table 82 on pg110 in LPC17xx_UM 
-		-----------------------------------------------------
-		*/
-		pTimer = (LPC_TIM_TypeDef *) LPC_TIM0;
+/*
+ * Temporary mailbox. Holds messages for delayed send.
+ */
+static MessageQueue s_CentralMailbox;
 
-	} else if (n_timer == 1) { // performance timer
-		pTimer = (LPC_TIM_TypeDef *) LPC_TIM1;
-	}
+/**
+ * @brief: Initializes the timer. 
+ */
+uint32_t timer_init(uint8_t n_timer) {
+    LPC_TIM_TypeDef *pTimer;
+    if (n_timer == 0) {
+        /*
+        Steps 1 & 2: system control configuration.
+        Under CMSIS, system_LPC17xx.c does these two steps
+        
+        ----------------------------------------------------- 
+        Step 1: Power control configuration.
+                See table 46 pg63 in LPC17xx_UM
+        -----------------------------------------------------
+        Enable UART0 power, this is the default setting
+        done in system_LPC17xx.c under CMSIS.
+        Enclose the code for your refrence
+        //LPC_SC->PCONP |= BIT(1);
+    
+        -----------------------------------------------------
+        Step2: Select the clock source, 
+               default PCLK=CCLK/4 , where CCLK = 100MHZ.
+               See tables 40 & 42 on pg56-57 in LPC17xx_UM.
+        -----------------------------------------------------
+        Check the PLL0 configuration to see how XTAL=12.0MHZ 
+        gets to CCLK=100MHZ in system_LPC17xx.c file.
+        PCLK = CCLK/4, default setting in system_LPC17xx.c.
+        Enclose the code for your reference
+        //LPC_SC->PCLKSEL0 &= ~(BIT(3)|BIT(2)); 
 
-	/*
-	-----------------------------------------------------
-	Step 4: Interrupts configuration
-	-----------------------------------------------------
-	*/
+        -----------------------------------------------------
+        Step 3: Pin Ctrl Block configuration. 
+                Optional, not used in this example
+                See Table 82 on pg110 in LPC17xx_UM 
+        -----------------------------------------------------
+        */
+        pTimer = (LPC_TIM_TypeDef *) LPC_TIM0;
 
-	/* Step 4.1: Prescale Register PR setting 
-	   CCLK = 100 MHZ, PCLK = CCLK/4 = 25 MHZ
-	   2*(12499 + 1)*(1/25) * 10^(-6) s = 10^(-3) s = 1 ms
-	   TC (Timer Counter) toggles b/w 0 and 1 every 12500 PCLKs
-	   see MR setting below 
-	*/
-	pTimer->PR = 12499;  
+    } else if (n_timer == 1) { // performance timer
+        pTimer = (LPC_TIM_TypeDef *) LPC_TIM1;
+    }
 
-	/* Step 4.2: MR setting, see section 21.6.7 on pg496 of LPC17xx_UM. */
-	pTimer->MR0 = 1;
+    /*
+    -----------------------------------------------------
+    Step 4: Interrupts configuration
+    -----------------------------------------------------
+    */
 
-	/* Step 4.3: MCR setting, see table 429 on pg496 of LPC17xx_UM.
-	   Interrupt on MR0: when MR0 mathches the value in the TC, 
-	                     generate an interrupt.
-	   Reset on MR0: Reset TC if MR0 mathches it.
-	*/
-	pTimer->MCR = BIT(0) | BIT(1);
+    /* Step 4.1: Prescale Register PR setting 
+       CCLK = 100 MHZ, PCLK = CCLK/4 = 25 MHZ
+       2*(12499 + 1)*(1/25) * 10^(-6) s = 10^(-3) s = 1 ms
+       TC (Timer Counter) toggles b/w 0 and 1 every 12500 PCLKs
+       see MR setting below 
+    */
+    pTimer->PR = 12499;  
 
-	g_timer_count = 0;
+    /* Step 4.2: MR setting, see section 21.6.7 on pg496 of LPC17xx_UM. */
+    pTimer->MR0 = 1;
 
-	/* Step 4.4: CSMSIS enable timer IRQ */
-	if (n_timer == 0) {
-		NVIC_EnableIRQ(TIMER0_IRQn);
-	} else if (n_timer == 1) {
+    /* Step 4.3: MCR setting, see table 429 on pg496 of LPC17xx_UM.
+       Interrupt on MR0: when MR0 mathches the value in the TC, 
+                         generate an interrupt.
+       Reset on MR0: Reset TC if MR0 mathches it.
+    */
+    pTimer->MCR = BIT(0) | BIT(1);
+
+    g_timer_count = 0;
+
+    /* Step 4.4: CSMSIS enable timer IRQ */
+    if (n_timer == 0) {
+        NVIC_EnableIRQ(TIMER0_IRQn);
+    } else if (n_timer == 1) {
         NVIC_EnableIRQ(TIMER1_IRQn);
     }
 
-	/* Step 4.5: Enable the TCR. See table 427 on pg494 of LPC17xx_UM. */
-	pTimer->TCR = 1;
+    /* Step 4.5: Enable the TCR. See table 427 on pg494 of LPC17xx_UM. */
+    pTimer->TCR = 1;
 
-	return 0;
+    return 0;
 }
 
 void initializeTimerProcess() {
-    initializeMessageQueue(&centralMailbox);
-	timerProcess.m_pid = (U32)TIMER_IPROCESS;
-	timerProcess.m_priority = NULL_PRIORITY;
-	timerProcess.m_stack_size = 0x100;
-	timerProcess.mpf_start_pc = NULL;
+    initializeMessageQueue(&s_CentralMailbox);
+    g_TimerProcess.m_pid = (U32)TIMER_IPROCESS;
+    g_TimerProcess.m_priority = NULL_PRIORITY;
+    g_TimerProcess.m_stack_size = 0x100;
+    g_TimerProcess.mpf_start_pc = NULL;
 }
 
 /**
@@ -117,11 +124,11 @@ void initializeTimerProcess() {
  */
 __asm void TIMER0_IRQHandler(void)
 {
-	PRESERVE8
-	IMPORT c_TIMER0_IRQHandler
-	PUSH{r4-r11, lr}
-	BL c_TIMER0_IRQHandler
-	POP{r4-r11, pc}
+    PRESERVE8
+    IMPORT c_TIMER0_IRQHandler
+    PUSH{r4-r11, lr}
+    BL c_TIMER0_IRQHandler
+    POP{r4-r11, pc}
 } 
 /**
  * @brief: c TIMER0 IRQ Handler
@@ -133,24 +140,25 @@ void c_TIMER0_IRQHandler(void) {
     int flag = 0;
     
     __disable_irq();
-	/* acknowledge interrupt, see section  21.6.1 on pg 493 of LPC17XX_UM */
-	LPC_TIM0->IR = BIT(0);  
-	
+
+    // acknowledge interrupt, see section  21.6.1 on pg 493 of LPC17XX_UM
+    LPC_TIM0->IR = BIT(0);  
+    
     // increment timer
-	g_timer_count++;
+    g_timer_count++;
     
     // get current mail
     newMessage = nonBlockingReceiveMessage(TIMER_IPROCESS, NULL);
     while (newMessage != NULL) {
         envelope = (Envelope*)((U32)newMessage - sizeof(Envelope)); // get address of envelope
-        insertEnvelope(&centralMailbox, envelope);
+        insertEnvelope(&s_CentralMailbox, envelope);
         newMessage = nonBlockingReceiveMessage(TIMER_IPROCESS, NULL);
     }
         
     // send all expired mail
-    while (centralMailbox.m_First != NULL && centralMailbox.m_First->m_Expiry <= g_timer_count) {
+    while (s_CentralMailbox.m_First != NULL && s_CentralMailbox.m_First->m_Expiry <= g_timer_count) {
         flag = 1;
-        envelope = dequeueEnvelope(&centralMailbox);
+        envelope = dequeueEnvelope(&s_CentralMailbox);
         nonPreemptiveSendMessage(envelope->m_SenderPID, envelope->m_DestinationPID, (void *)((U32)envelope + sizeof(Envelope)));
     }
     
@@ -159,6 +167,4 @@ void c_TIMER0_IRQHandler(void) {
     if (flag == 1) {
         k_release_processor();
     }
-    
 }
-

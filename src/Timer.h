@@ -1,15 +1,19 @@
 /**
- * @brief timer.h - Timer header file
- * @author Y. Huang
- * @date 2013/02/12
+ * @file:   Timer.h
+ * @brief:  Timer header file.
  */
+
 #ifndef _TIMER_H_
 #define _TIMER_H_
 
 #include <stdint.h>
 
-void initializeTimerProcess(void); // initializes the timer i-process
+/**
+ * Initializes the timer i-process table item. Called during process
+ * initialization.
+ */
+void initializeTimerProcess(void);
 
-extern uint32_t timer_init ( uint8_t n_timer );  /* initialize timer n_timer */
+extern uint32_t timer_init(uint8_t n_timer); // initialize timer n_timer
 
 #endif /* ! _TIMER_H_ */

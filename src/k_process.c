@@ -57,7 +57,7 @@ extern PROC_INIT g_NullProcess;
 extern PROC_INIT g_ClockProcess;
 extern PROC_INIT g_KCDProcess;
 extern PROC_INIT g_CRTProcess;
-extern PROC_INIT timerProcess;
+extern PROC_INIT g_TimerProcess;
 extern PROC_INIT UARTProcess;
 extern PROC_INIT g_SetPriorityProcess;
 
@@ -258,10 +258,10 @@ void process_init() {
     g_proc_table[CRT_PROCESS].m_stack_size = g_CRTProcess.m_stack_size;
     g_proc_table[CRT_PROCESS].mpf_start_pc = g_CRTProcess.mpf_start_pc;
     
-    g_proc_table[TIMER_IPROCESS].m_pid = timerProcess.m_pid;
-    g_proc_table[TIMER_IPROCESS].m_priority = timerProcess.m_priority;
-    g_proc_table[TIMER_IPROCESS].m_stack_size = timerProcess.m_stack_size;
-    g_proc_table[TIMER_IPROCESS].mpf_start_pc = timerProcess.mpf_start_pc;
+    g_proc_table[TIMER_IPROCESS].m_pid = g_TimerProcess.m_pid;
+    g_proc_table[TIMER_IPROCESS].m_priority = g_TimerProcess.m_priority;
+    g_proc_table[TIMER_IPROCESS].m_stack_size = g_TimerProcess.m_stack_size;
+    g_proc_table[TIMER_IPROCESS].mpf_start_pc = g_TimerProcess.mpf_start_pc;
     
     g_proc_table[UART_IPROCESS].m_pid = UARTProcess.m_pid;
     g_proc_table[UART_IPROCESS].m_priority = UARTProcess.m_priority;
