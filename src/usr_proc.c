@@ -8,10 +8,10 @@
 
 #include "usr_proc.h"
 
-#include "rtx.h"
-#include "Polling/uart_polling.h"
-#include "Utilities/String.h"
 #include "PerformanceTimer.h"
+#include "Polling/uart_polling.h"
+#include "rtx.h"
+#include "Utilities/String.h"
 
 #ifdef DEBUG_0
 #include "printf.h"
@@ -19,59 +19,66 @@
 #include "printf.h"
 #endif /* DEBUG_0 || DEBUG_PERFORMANCE */
 
-/* --Definition-- */
-#define NUM_BLOCK 40
-
-/* initialization table item */
+/**
+ * User process initialization table items. Initialized with values on a
+ * set_test_procs() call.
+ */
 PROC_INIT g_test_procs[NUM_TEST_PROCS];
 
-int test[7] = {0}; // Flag for test cases 1 to 6
-int testMode = 1; // The testMode to indicate which test case is running. 1 is running and 0 is not
+/*
+ * Flags for test results.
+ */
+static int s_Test[7] = { 0 };
+
+/*
+ * Indicates whether tests are currently running.
+ */
+static int s_TestMode = 1;
 
 void set_test_procs() {
-	int i;
-	
-	for (i = 0; i < NUM_TEST_PROCS; i++) {
-		g_test_procs[i].m_pid = (U32)(i + 1);
-		g_test_procs[i].m_stack_size = 0x100;
-	}
+    int i;
+    
+    for (i = 0; i < NUM_TEST_PROCS; i++) {
+        g_test_procs[i].m_pid = (U32)(i + 1);
+        g_test_procs[i].m_stack_size = 0x100;
+    }
 
 #ifdef DEBUG_PERFORMANCE
     // replace regular user processes with performance testing processes
     // if we're in performance testing mode
     g_test_procs[0].m_priority = HIGH;
-	g_test_procs[1].m_priority = HIGH;
-	g_test_procs[2].m_priority = HIGH;
-	g_test_procs[3].m_priority = LOW;
-	g_test_procs[4].m_priority = LOW;
-	g_test_procs[5].m_priority = LOW;
-	
-	g_test_procs[0].mpf_start_pc = &requestMemoryBlockPerformance;
-	g_test_procs[1].mpf_start_pc = &sendMessagePerformance;
-	g_test_procs[2].mpf_start_pc = &receiveMessagePerformance;
-	g_test_procs[3].mpf_start_pc = &performanceDummy1;
-	g_test_procs[4].mpf_start_pc = &performanceDummy2;
-	g_test_procs[5].mpf_start_pc = &performanceDummy3;
+    g_test_procs[1].m_priority = HIGH;
+    g_test_procs[2].m_priority = HIGH;
+    g_test_procs[3].m_priority = LOW;
+    g_test_procs[4].m_priority = LOW;
+    g_test_procs[5].m_priority = LOW;
+    
+    g_test_procs[0].mpf_start_pc = &requestMemoryBlockPerformance;
+    g_test_procs[1].mpf_start_pc = &sendMessagePerformance;
+    g_test_procs[2].mpf_start_pc = &receiveMessagePerformance;
+    g_test_procs[3].mpf_start_pc = &performanceDummy1;
+    g_test_procs[4].mpf_start_pc = &performanceDummy2;
+    g_test_procs[5].mpf_start_pc = &performanceDummy3;
 #else    
-	g_test_procs[0].m_priority = HIGH;
-	g_test_procs[1].m_priority = HIGH;
-	g_test_procs[2].m_priority = MEDIUM;
-	g_test_procs[3].m_priority = MEDIUM;
-	g_test_procs[4].m_priority = LOW;
-	g_test_procs[5].m_priority = LOW;
-	
-	g_test_procs[0].mpf_start_pc = &proc1;
-	g_test_procs[1].mpf_start_pc = &proc2;
-	g_test_procs[2].mpf_start_pc = &proc3;
-	g_test_procs[3].mpf_start_pc = &proc4;
-	g_test_procs[4].mpf_start_pc = &proc5;
-	g_test_procs[5].mpf_start_pc = &proc6;
+    g_test_procs[0].m_priority = HIGH;
+    g_test_procs[1].m_priority = HIGH;
+    g_test_procs[2].m_priority = MEDIUM;
+    g_test_procs[3].m_priority = MEDIUM;
+    g_test_procs[4].m_priority = LOW;
+    g_test_procs[5].m_priority = LOW;
+    
+    g_test_procs[0].mpf_start_pc = &proc1;
+    g_test_procs[1].mpf_start_pc = &proc2;
+    g_test_procs[2].mpf_start_pc = &proc3;
+    g_test_procs[3].mpf_start_pc = &proc4;
+    g_test_procs[4].mpf_start_pc = &proc5;
+    g_test_procs[5].mpf_start_pc = &proc6;
 #endif
 }
 
 /**
 * test cases (RTX I):
-* test1: proc2 should be blocked when it tried to request more memoey after proc1 has all the memory
+* test1: proc2 should be blocked when it tried to request more memory after proc1 has all the memory
 * test2: proc2 unblocked here after releasing one memory from proc1 
 * test3: proc 1 shuld have the lowest proirity 
 * test4: since proc2 is blocked then proc3 should be ready to run
@@ -103,24 +110,24 @@ void set_test_procs() {
  * @brief: Process waits for a message from Process 5, then sets its priority to LOWEST causing a preemption.
  */
 void proc1(void) {
-	Letter* received;
+    Letter* received;
     
-	while (1) {
-		if (testMode) {
-			test[1]++; // test[1] is 1
-		}
-		received = (Letter*)receive_message(NULL); // this will block until Process 5 sends a message
+    while (1) {
+        if (s_TestMode) {
+            s_Test[1]++; // s_Test[1] is 1
+        }
+        received = (Letter*)receive_message(NULL); // this will block until Process 5 sends a message
         
         // change the priority by sending a message to the set process priority process
         // reuse the message envelope that we just received
         strcpy("%C 1 4", received->m_Text);
-		send_message(PROCESS_SET_PRIORITY, (void*)received); // this will preempt, Process 6 will always have a higher priority
-		
+        send_message(PROCESS_SET_PRIORITY, (void*)received); // this will preempt, Process 6 will always have a higher priority
+        
         // if the process reaches this point, it has failed
-		if (testMode) {
-			test[6] = -1000;
-		}
-	}
+        if (s_TestMode) {
+            s_Test[6] = -1000;
+        }
+    }
 }
 
 
@@ -129,55 +136,55 @@ void proc1(void) {
  *         Upon receive, we do some message verification, then set this process' priority to LOWESST.
  */
 void proc2(void) {
-	Letter* command;
-	Letter* received;
-	int sender;
+    Letter* command;
+    Letter* received;
+    int sender;
     
-	while (1) {
-		command = (Letter*)request_memory_block();
-		command->m_Type = KCD_REG;
-		command->m_Text[0] = '%';
-		command->m_Text[1] = 'V';
-		command->m_Text[2] = 'I';
-		command->m_Text[3] = '\0';
-		
-		if (testMode) {
-				test[2]++; // test[2] is 1
-		}
+    while (1) {
+        command = (Letter*)request_memory_block();
+        command->m_Type = KCD_REG;
+        command->m_Text[0] = '%';
+        command->m_Text[1] = 'V';
+        command->m_Text[2] = 'I';
+        command->m_Text[3] = '\0';
         
-		send_message(KCD_PROCESS, (void*)command); // register command
-		release_processor();
-		
+        if (s_TestMode) {
+                s_Test[2]++; // s_Test[2] is 1
+        }
+        
+        send_message(KCD_PROCESS, (void*)command); // register command
+        release_processor();
+        
         // this will block until Process 3 sends a message
-		received = (Letter*)receive_message(&sender);
-		
+        received = (Letter*)receive_message(&sender);
+        
         // received a message
         // assert: sender is PROCESS_3
         //         message content is "Hi"
-		if (testMode) {
-			if (sender != PROCESS_3) { // verify sender
-				test[2] = -1000; // test[2] fails
-			} else if (received->m_Text[0] != 'H' || received->m_Text[1] != 'i' && received->m_Text[2] == '\0') { // verify content
-                test[2] = -1000; // test[2] fails
-			} else {
-				test[2]++; // test[2] is 1	
-			}
-		}
-        
-        if (release_memory_block((void*)received) == RTX_ERR) {
-            test[4] = -1000; // if this operation fails, the test fails
-        } else {
-            test[4]++;
+        if (s_TestMode) {
+            if (sender != PROCESS_3) { // verify sender
+                s_Test[2] = -1000; // s_Test[2] fails
+            } else if (received->m_Text[0] != 'H' || received->m_Text[1] != 'i' && received->m_Text[2] == '\0') { // verify content
+                s_Test[2] = -1000; // s_Test[2] fails
+            } else {
+                s_Test[2]++; // s_Test[2] is 1  
+            }
         }
         
-		command = (Letter*)request_memory_block();
-		command->m_Type = DEFAULT;
+        if (release_memory_block((void*)received) == RTX_ERR) {
+            s_Test[4] = -1000; // if this operation fails, the test fails
+        } else {
+            s_Test[4]++;
+        }
+        
+        command = (Letter*)request_memory_block();
+        command->m_Type = DEFAULT;
         strcpy("%C 2 4", command->m_Text);
         
         send_message(PROCESS_SET_PRIORITY, (void*)command); // set Process 2 to LOWEST priority (should never run again)
 
-		release_processor();
-	}
+        release_processor();
+    }
 }
 
 
@@ -186,23 +193,23 @@ void proc2(void) {
  *         Upon receive, we do some message verification, then set this process' priority to LOWESST.
  */
 void proc3(void) {
-	Letter* message;
-	Letter* received;
-	int sender;
-		
-	while (1) {
+    Letter* message;
+    Letter* received;
+    int sender;
+        
+    while (1) {
         // write a message to Process 2
-		message = (Letter*)request_memory_block();		
-		message->m_Type = DEFAULT;
-		message->m_Text[0] = 'H';
-		message->m_Text[1] = 'i';
-		message->m_Text[2] = '\0';
-		
-		if (testMode) {
-            test[3]++; // test[3] is 2
+        message = (Letter*)request_memory_block();      
+        message->m_Type = DEFAULT;
+        message->m_Text[0] = 'H';
+        message->m_Text[1] = 'i';
+        message->m_Text[2] = '\0';
+        
+        if (s_TestMode) {
+            s_Test[3]++; // s_Test[3] is 2
         }
         
-		send_message(PROCESS_2, (void*)message); // this will preempt
+        send_message(PROCESS_2, (void*)message); // this will preempt
         
         // Once this Process 3 is preempted, Process 2 will run.
         // Process 3 gets added to the back of the Ready Queue.
@@ -210,28 +217,28 @@ void proc3(void) {
         // so there will already be a message waiting in Process 3's mailbox.
         
         // (Process 4 delay-sends and busy waits for 3 seconds)
-		
-        // i.e., this will not block
-		// get a message from Process 4
-		received = (Letter*)receive_message(&sender);
         
-		test[3] = 100;
+        // i.e., this will not block
+        // get a message from Process 4
+        received = (Letter*)receive_message(&sender);
+        
+        s_Test[3] = 100;
         
         // received a message
         // assert: sender is PROCESS_4
-		if (testMode) {
-			if (sender != PROCESS_4) { // verify sender
-				test[3] = -1000; // test[3] fails
-			}
-		}
-		
+        if (s_TestMode) {
+            if (sender != PROCESS_4) { // verify sender
+                s_Test[3] = -1000; // s_Test[3] fails
+            }
+        }
+        
         // change the priority by sending a message to the set process priority process
         // reuse the message envelope that we just received
         strcpy("%C 3 4", received->m_Text);
-		send_message(PROCESS_SET_PRIORITY, (void*)received); // set Process 3 to LOWEST priority (should never run again)
+        send_message(PROCESS_SET_PRIORITY, (void*)received); // set Process 3 to LOWEST priority (should never run again)
         
-		release_processor();
-	}
+        release_processor();
+    }
 }
 
 
@@ -241,54 +248,54 @@ void proc3(void) {
  *         Then process tries to receive a message and blocks indefinitely.
  */
 void proc4(void) {
-	Letter* message;
-	Letter* received;
-	int i, j;
+    Letter* message;
+    Letter* received;
+    int i, j;
     
-	while (1) {
+    while (1) {
         // write a message to Process 3
-		message = (Letter*)request_memory_block();
-		message->m_Type = DEFAULT;
+        message = (Letter*)request_memory_block();
+        message->m_Type = DEFAULT;
         
-		for (i = 0; i < 26; i ++) {
-			message->m_Text[i] = 65 + i;
-		}
+        for (i = 0; i < 26; i ++) {
+            message->m_Text[i] = 65 + i;
+        }
 
-		if (testMode) {
-            test[5]++; // test[5] is 1
+        if (s_TestMode) {
+            s_Test[5]++; // s_Test[5] is 1
         }
         
         for (i = 0; i < 3; i++) {
             // count from i = 0 to 3
-		}
+        }
 
         // delay for 3 seconds
-		delayed_send(PROCESS_3, (void *)message, 3000);
+        delayed_send(PROCESS_3, (void *)message, 3000);
 
         // after 3 seconds, this process will be preempted and Process 3 will be scheduled
-        // at which time test[3] will be set to 100
-        // poll test[3] until we are preempted
-		j = 0;
-		while (test[3] != 100) { // if test[3] didn't fail in proc3 then this loop is terminated when it comes back to proc4
-			j++;
-			if (test[3] == -1000) {
-                break; // test[3] fails
+        // at which time s_Test[3] will be set to 100
+        // poll s_Test[3] until we are preempted
+        j = 0;
+        while (s_Test[3] != 100) { // if s_Test[3] didn't fail in proc3 then this loop is terminated when it comes back to proc4
+            j++;
+            if (s_Test[3] == -1000) {
+                break; // s_Test[3] fails
             }
-		}
-		
-		if (testMode == 1 && i == 3) {
-			test[5]++;
-		} else {
-			test[5] = -1000;
-		}
+        }
+        
+        if (s_TestMode == 1 && i == 3) {
+            s_Test[5]++;
+        } else {
+            s_Test[5] = -1000;
+        }
         
         message = (Letter*)request_memory_block();
-		delayed_send(PROCESS_5, (void *)message, 1000);
+        delayed_send(PROCESS_5, (void *)message, 1000);
         
         // this will block
-		received = (Letter*)receive_message(NULL);
+        received = (Letter*)receive_message(NULL);
         release_memory_block((void*)received); // this line should never execute
-	}
+    }
 }
 
 
@@ -299,32 +306,32 @@ void proc4(void) {
  *         Then tries to receive a message and blocks indefinitely.
  */
 void proc5(void) {
-	Letter* received;
+    Letter* received;
     
-	while (1) {
+    while (1) {
         // receive a message from Process 4
-		received = (Letter*)receive_message(NULL);
+        received = (Letter*)receive_message(NULL);
         
         if (get_process_priority(PROCESS_1) != HIGH) { // Process 1 should have been blocked this entire time
                                                        // and not been able to change its priority
-            test[1] = -1000;
+            s_Test[1] = -1000;
         }
-		
+        
         // forward the message to Process 1
         send_message(PROCESS_1, (void*)received); // this will preempt
         
         if (get_process_priority(PROCESS_1) != LOWEST) {
-            test[6] = -1000;
+            s_Test[6] = -1000;
         } else {
-            test[6]++; // if Process 1's priority was not HIGH at the beginning, test[6] will not be > 0
+            s_Test[6]++; // if Process 1's priority was not HIGH at the beginning, test[6] will not be > 0
         }
-		
+        
         // this will block
-		received = (Letter*)receive_message(NULL);
+        received = (Letter*)receive_message(NULL);
         
         // process should never reach this line
-		test[1] = -1000;
-	}
+        s_Test[1] = -1000;
+    }
 }
 
 
@@ -332,54 +339,54 @@ void proc5(void) {
  * @brief: Process prints test results then sets test flag to 0 (no more testing).
  */
 void proc6(void) {
-	int fail = 0;
-	int pass;
-	int i;
-	
-	while (1) { 
-		while (testMode) {
-			i++;
-			if (test[6] != 0) {
-				break; // break if Process 5 completed all of its tests
-			}
-			release_processor();
-		}
-		
+    int fail = 0;
+    int pass;
+    int i;
+    
+    while (1) { 
+        while (s_TestMode) {
+            i++;
+            if (s_Test[6] != 0) {
+                break; // break if Process 5 completed all of its tests
+            }
+            release_processor();
+        }
+        
         // print test results
-		if (testMode) {
-			uart1_put_string("\n\r");
-			uart1_put_string("G006_test: START\n\r");
-			uart1_put_string("G006_test: total 6 tests\n\r");
-			
-			for (i = 1; i < 7 ; ++i) {
-				if (test[i] <= 0) {
-					fail++;
-					uart1_put_string("G006_test: test");
-					uart1_put_char('0' + i);
-					uart1_put_string(" FAIL\n\r");
-				} else {
-					uart1_put_string("G006_test: test");
-					uart1_put_char('0' + i);
-					uart1_put_string(" OK\n\r");
-				}
-			}
-		
-			pass = 6 - fail;
-			uart1_put_string("G006_test: ");
-			uart1_put_char('0' + pass);
-			uart1_put_string("/6 tests OK\n\r");
-		
-			uart1_put_string("G006_test: ");
-			uart1_put_char('0' + fail);
-			uart1_put_string("/6 tests FAIL\n\r");
-		
-			uart1_put_string("G006_test: END\n\r");
-			
-			testMode = 0; // no more testing	
-		}
-			
-		release_processor();
-	}
+        if (s_TestMode) {
+            uart1_put_string("\n\r");
+            uart1_put_string("G006_test: START\n\r");
+            uart1_put_string("G006_test: total 6 tests\n\r");
+            
+            for (i = 1; i < 7 ; ++i) {
+                if (s_Test[i] <= 0) {
+                    fail++;
+                    uart1_put_string("G006_test: test");
+                    uart1_put_char('0' + i);
+                    uart1_put_string(" FAIL\n\r");
+                } else {
+                    uart1_put_string("G006_test: test");
+                    uart1_put_char('0' + i);
+                    uart1_put_string(" OK\n\r");
+                }
+            }
+        
+            pass = 6 - fail;
+            uart1_put_string("G006_test: ");
+            uart1_put_char('0' + pass);
+            uart1_put_string("/6 tests OK\n\r");
+        
+            uart1_put_string("G006_test: ");
+            uart1_put_char('0' + fail);
+            uart1_put_string("/6 tests FAIL\n\r");
+        
+            uart1_put_string("G006_test: END\n\r");
+            
+            s_TestMode = 0; // no more testing    
+        }
+            
+        release_processor();
+    }
 }
 
 #ifdef DEBUG_PERFORMANCE
