@@ -7,8 +7,8 @@
 
 #include "UART.h"
 
-#include "k_process.h"
 #include "k_memory.h"
+#include "k_process.h"
 #include "Polling/uart_polling.h"
 #include "Utilities/String.h"
 
@@ -18,154 +18,153 @@
 #include "printf.h"
 #endif /* ! DEBUG_0 */
 
-PROC_INIT UARTProcess; // for UART i-process PCB
+/**
+ * UART i-process initialization table item. Initialized with values on an
+ * initializeUARTProcess() call.
+ */
+PROC_INIT g_UARTProcess;
 
-char hotkeys[3]={'~','!','@'};
+#ifdef _DEBUG_HOTKEYS
+/**
+ * Reserved space for printing hotkey debug information.
+ */
+static char s_DebugInfo[100];
 
-#ifdef _DEBUG_HOTKEYS	
-char debugInfo[100];
+/**
+ * Hotkey characters.
+ */
+static char s_Hotkeys[3] = { '~', '!', '@' };
+
 #endif /* _DEBUG_HOTKEYS */
 
-/**
- * @brief: initialize the n_uart
- * NOTES: It only supports UART0. It can be easily extended to support UART1 IRQ.
- * The step number in the comments matches the item number in Section 14.1 on pg 298
- * of LPC17xx_UM
- */
 int uart_irq_init(int n_uart) {
+    LPC_UART_TypeDef* pUart;
 
-	LPC_UART_TypeDef *pUart;
-
-	if ( n_uart ==0 ) {
-		/*
-		Steps 1 & 2: system control configuration.
-		Under CMSIS, system_LPC17xx.c does these two steps
-		 
-		-----------------------------------------------------
-		Step 1: Power control configuration. 
-		        See table 46 pg63 in LPC17xx_UM
-		-----------------------------------------------------
-		Enable UART0 power, this is the default setting
-		done in system_LPC17xx.c under CMSIS.
-		Enclose the code for your refrence
-		//LPC_SC->PCONP |= BIT(3);
-	
-		-----------------------------------------------------
-		Step2: Select the clock source. 
-		       Default PCLK=CCLK/4 , where CCLK = 100MHZ.
-		       See tables 40 & 42 on pg56-57 in LPC17xx_UM.
-		-----------------------------------------------------
-		Check the PLL0 configuration to see how XTAL=12.0MHZ 
-		gets to CCLK=100MHZin system_LPC17xx.c file.
-		PCLK = CCLK/4, default setting after reset.
-		Enclose the code for your reference
-		//LPC_SC->PCLKSEL0 &= ~(BIT(7)|BIT(6));	
-			
-		-----------------------------------------------------
-		Step 5: Pin Ctrl Block configuration for TXD and RXD
-		        See Table 79 on pg108 in LPC17xx_UM.
-		-----------------------------------------------------
-		Note this is done before Steps3-4 for coding purpose.
-		*/
-		
-		/* Pin P0.2 used as TXD0 (Com0) */
-		LPC_PINCON->PINSEL0 |= (1 << 4);  
-		
-		/* Pin P0.3 used as RXD0 (Com0) */
-		LPC_PINCON->PINSEL0 |= (1 << 6);  
-
-		pUart = (LPC_UART_TypeDef *) LPC_UART0;	 
-		
-	} else if ( n_uart == 1) {
-	    
-		/* see Table 79 on pg108 in LPC17xx_UM */ 
-		/* Pin P2.0 used as TXD1 (Com1) */
-		LPC_PINCON->PINSEL4 |= (2 << 0);
-
-		/* Pin P2.1 used as RXD1 (Com1) */
-		LPC_PINCON->PINSEL4 |= (2 << 2);	      
-
-		pUart = (LPC_UART_TypeDef *) LPC_UART1;
-		
-	} else {
-		return -1; /* not supported yet */
-	} 
-	
-	/*
-	-----------------------------------------------------
-	Step 3: Transmission Configuration.
-	        See section 14.4.12.1 pg313-315 in LPC17xx_UM 
-	        for baud rate calculation.
-	-----------------------------------------------------
+    if (n_uart == 0) {
+        /*
+        Steps 1 & 2: system control configuration.
+        Under CMSIS, system_LPC17xx.c does these two steps
+         
+        -----------------------------------------------------
+        Step 1: Power control configuration. 
+                See table 46 pg63 in LPC17xx_UM
+        -----------------------------------------------------
+        Enable UART0 power, this is the default setting
+        done in system_LPC17xx.c under CMSIS.
+        Enclose the code for your refrence
+        //LPC_SC->PCONP |= BIT(3);
+    
+        -----------------------------------------------------
+        Step2: Select the clock source. 
+               Default PCLK=CCLK/4 , where CCLK = 100MHZ.
+               See tables 40 & 42 on pg56-57 in LPC17xx_UM.
+        -----------------------------------------------------
+        Check the PLL0 configuration to see how XTAL=12.0MHZ 
+        gets to CCLK=100MHZin system_LPC17xx.c file.
+        PCLK = CCLK/4, default setting after reset.
+        Enclose the code for your reference
+        //LPC_SC->PCLKSEL0 &= ~(BIT(7)|BIT(6)); 
+            
+        -----------------------------------------------------
+        Step 5: Pin Ctrl Block configuration for TXD and RXD
+                See Table 79 on pg108 in LPC17xx_UM.
+        -----------------------------------------------------
+        Note this is done before Steps3-4 for coding purpose.
         */
-	
-	/* Step 3a: DLAB=1, 8N1 */
-	pUart->LCR = UART_8N1; /* see uart.h file */ 
+        
+        /* Pin P0.2 used as TXD0 (Com0) */
+        LPC_PINCON->PINSEL0 |= (1 << 4);  
+        
+        /* Pin P0.3 used as RXD0 (Com0) */
+        LPC_PINCON->PINSEL0 |= (1 << 6);  
 
-	/* Step 3b: 115200 baud rate @ 25.0 MHZ PCLK */
-	pUart->DLM = 0; /* see table 274, pg302 in LPC17xx_UM */
-	pUart->DLL = 9;	/* see table 273, pg302 in LPC17xx_UM */
-	
-	/* FR = 1.507 ~ 1/2, DivAddVal = 1, MulVal = 2
-	   FR = 1.507 = 25MHZ/(16*9*115200)
-	   see table 285 on pg312 in LPC_17xxUM
-	*/
-	pUart->FDR = 0x21;       
-	
- 
+        pUart = (LPC_UART_TypeDef *) LPC_UART0;  
+        
+    } else if (n_uart == 1) {
+        
+        /* see Table 79 on pg108 in LPC17xx_UM */ 
+        /* Pin P2.0 used as TXD1 (Com1) */
+        LPC_PINCON->PINSEL4 |= (2 << 0);
 
-	/*
-	----------------------------------------------------- 
-	Step 4: FIFO setup.
-	       see table 278 on pg305 in LPC17xx_UM
-	-----------------------------------------------------
+        /* Pin P2.1 used as RXD1 (Com1) */
+        LPC_PINCON->PINSEL4 |= (2 << 2);          
+
+        pUart = (LPC_UART_TypeDef *) LPC_UART1;
+        
+    } else {
+        return -1; /* not supported yet */
+    } 
+    
+    /*
+    -----------------------------------------------------
+    Step 3: Transmission Configuration.
+            See section 14.4.12.1 pg313-315 in LPC17xx_UM 
+            for baud rate calculation.
+    -----------------------------------------------------
+        */
+    
+    /* Step 3a: DLAB=1, 8N1 */
+    pUart->LCR = UART_8N1; /* see uart.h file */ 
+
+    /* Step 3b: 115200 baud rate @ 25.0 MHZ PCLK */
+    pUart->DLM = 0; /* see table 274, pg302 in LPC17xx_UM */
+    pUart->DLL = 9; /* see table 273, pg302 in LPC17xx_UM */
+    
+    /* FR = 1.507 ~ 1/2, DivAddVal = 1, MulVal = 2
+       FR = 1.507 = 25MHZ/(16*9*115200)
+       see table 285 on pg312 in LPC_17xxUM
+    */
+    pUart->FDR = 0x21;       
+    
+    /*
+    ----------------------------------------------------- 
+    Step 4: FIFO setup.
+           see table 278 on pg305 in LPC17xx_UM
+    -----------------------------------------------------
         enable Rx and Tx FIFOs, clear Rx and Tx FIFOs
-	Trigger level 0 (1 char per interrupt)
-	*/
-	
-	pUart->FCR = 0x07;
+    Trigger level 0 (1 char per interrupt)
+    */
+    
+    pUart->FCR = 0x07;
 
-	/* Step 5 was done between step 2 and step 4 a few lines above */
+    /* Step 5 was done between step 2 and step 4 a few lines above */
 
-	/*
-	----------------------------------------------------- 
-	Step 6 Interrupt setting and enabling
-	-----------------------------------------------------
-	*/
-	/* Step 6a: 
-	   Enable interrupt bit(s) wihtin the specific peripheral register.
+    /*
+    ----------------------------------------------------- 
+    Step 6 Interrupt setting and enabling
+    -----------------------------------------------------
+    */
+    /* Step 6a: 
+       Enable interrupt bit(s) wihtin the specific peripheral register.
            Interrupt Sources Setting: RBR, THRE or RX Line Stats
-	   See Table 50 on pg73 in LPC17xx_UM for all possible UART0 interrupt sources
-	   See Table 275 on pg 302 in LPC17xx_UM for IER setting 
-	*/
-	/* disable the Divisior Latch Access Bit DLAB=0 */
-	pUart->LCR &= ~(BIT(7)); 
-	
-	//pUart->IER = IER_RBR | IER_THRE | IER_RLS; 
-	pUart->IER = IER_RBR | IER_RLS;
+       See Table 50 on pg73 in LPC17xx_UM for all possible UART0 interrupt sources
+       See Table 275 on pg 302 in LPC17xx_UM for IER setting 
+    */
+    /* disable the Divisior Latch Access Bit DLAB=0 */
+    pUart->LCR &= ~(BIT(7)); 
+    
+    //pUart->IER = IER_RBR | IER_THRE | IER_RLS; 
+    pUart->IER = IER_RBR | IER_RLS;
 
-	/* Step 6b: enable the UART interrupt from the system level */
-	
-	if ( n_uart == 0 ) {
-		NVIC_EnableIRQ(UART0_IRQn); /* CMSIS function */
-	} else if ( n_uart == 1 ) {
-		NVIC_EnableIRQ(UART1_IRQn); /* CMSIS function */
-	} else {
-		return 1; /* not supported yet */
-	}
-	pUart->THR = '\0';
-	return 0;
+    /* Step 6b: enable the UART interrupt from the system level */
+    
+    if (n_uart == 0) {
+        NVIC_EnableIRQ(UART0_IRQn); /* CMSIS function */
+    } else if (n_uart == 1) {
+        NVIC_EnableIRQ(UART1_IRQn); /* CMSIS function */
+    } else {
+        return 1; /* not supported yet */
+    }
+    pUart->THR = '\0';
+    return 0;
 }
 
-/**
- * @brief: initialize the n_uart
- */
 int uart_polling_init(int n_uart) {
 
   LPC_UART_TypeDef *pUart;  /* ptr to memory mapped device UART, check         */
                             /* LPC17xx.h for UART register C structure overlay */
 
-  if (n_uart == 0 ) {
+  if (n_uart == 0) {
     /*
     Step 1: system control configuration
      
@@ -217,10 +216,10 @@ int uart_polling_init(int n_uart) {
 }
 
 void initializeUARTProcess() {
-	UARTProcess.m_pid = (U32)UART_IPROCESS;
-	UARTProcess.m_priority = NULL_PRIORITY;
-	UARTProcess.m_stack_size = 0x100;
-	UARTProcess.mpf_start_pc = NULL;
+    g_UARTProcess.m_pid = (U32)UART_IPROCESS;
+    g_UARTProcess.m_priority = NULL_PRIORITY;
+    g_UARTProcess.m_stack_size = 0x100;
+    g_UARTProcess.mpf_start_pc = NULL;
 }
 
 /**
@@ -232,18 +231,18 @@ void initializeUARTProcess() {
  */
 __asm void UART0_IRQHandler(void)
 {
-	PRESERVE8
-	IMPORT c_UART0_IRQHandler
-	PUSH{r4-r11, lr}
-	BL c_UART0_IRQHandler
-	POP{r4-r11, pc}
+    PRESERVE8
+    IMPORT c_UART0_IRQHandler
+    PUSH{r4-r11, lr}
+    BL c_UART0_IRQHandler
+    POP{r4-r11, pc}
 } 
 /**
  * @brief: c UART0 IRQ Handler
  */
 void c_UART0_IRQHandler(void)
 {
-    uint8_t IIR_IntId; // interrupt ID from IIR 		 
+    uint8_t IIR_IntId; // interrupt ID from IIR          
     LPC_UART_TypeDef *pUart;
     
     __disable_irq();
@@ -269,12 +268,12 @@ void c_UART0_IRQHandler(void)
         uart1_put_string("\n\r");
 #endif // DEBUG_0
         
-				#ifdef _DEBUG_HOTKEYS
-        //check for hotkey
-        if (strcont(hotkeys, character)) { // placeholder for hot keys
+#ifdef _DEBUG_HOTKEYS
+        // check for hotkey
+        if (strcont(s_Hotkeys, character)) { // placeholder for hotkeys
             hotkeyHandler(character);
         } else {
-        #endif // DEBUG_HOTKEYS
+#endif // DEBUG_HOTKEYS
             // send a message to KCD containing the character
             node = nonBlockingRequestMemory(); // request memory for message
             if (node != NULL) {
@@ -286,9 +285,9 @@ void c_UART0_IRQHandler(void)
                 // send the letter
                 nonPreemptiveSendMessage(UART_IPROCESS, KCD_PROCESS, (void*)newLetter);
             }
-				#ifdef _DEBUG_HOTKEYS	
+#ifdef _DEBUG_HOTKEYS   
         }
-				#endif // DEBUG_HOTKEYS
+#endif // DEBUG_HOTKEYS
     } else if (IIR_IntId & IIR_THRE) { // transmission
         Letter* newLetter;
         
@@ -296,15 +295,15 @@ void c_UART0_IRQHandler(void)
         newLetter = (Letter*)nonBlockingReceiveMessage(UART_IPROCESS, NULL);
         while (newLetter != NULL) {
             int i;
-			for (i = 0; newLetter->m_Text[i] != '\0'; i++) {
+            for (i = 0; newLetter->m_Text[i] != '\0'; i++) {
                 pUart->THR = newLetter->m_Text[i]; // print character
-            }		
+            }       
             nonPreemptiveReleaseMemory((void*)newLetter); // release message's memory
             newLetter = (Letter*)nonBlockingReceiveMessage(UART_IPROCESS, NULL);
         }
         pUart->IER ^= IER_THRE; // toggle IER_THRE bit
         pUart->THR = '\0';
-    } else {  /* not implemented yet */
+    } else {
 #ifdef DEBUG_0
             uart1_put_string("Should not get here!\n\r");
 #endif // DEBUG_0
@@ -316,75 +315,72 @@ void c_UART0_IRQHandler(void)
 
 #ifdef _DEBUG_HOTKEYS
 void hotkeyHandler(char hotkey) {
-    
-    //We could either have kernel functions that serialize queues,
-    // or we could juts extern them haha
-    // or we could call functions that return reference or copies of them
     int i;
     int j = 0;
     
-    if (debugInfo != NULL) {
-        if (hotkey == hotkeys[0]) { //print ready queue processes and their priorities
-            debugInfo[0] = 'R';
-            debugInfo[1] = 'E';
-            debugInfo[2] = 'A';
-            debugInfo[3] = 'D';
-            debugInfo[4] = 'Y';
-            debugInfo[5] = ':';
-					  debugInfo[6] = '\r';
-            debugInfo[7] = '\n';
+    if (s_DebugInfo != NULL) {
+        if (hotkey == s_Hotkeys[0]) { // print ready queue processes and their priorities
+            s_DebugInfo[0] = 'R';
+            s_DebugInfo[1] = 'E';
+            s_DebugInfo[2] = 'A';
+            s_DebugInfo[3] = 'D';
+            s_DebugInfo[4] = 'Y';
+            s_DebugInfo[5] = ':';
+            s_DebugInfo[6] = '\r';
+            s_DebugInfo[7] = '\n';
             j = 8;
-            serializeReadyQueue(debugInfo, j);
-        } else if (hotkey == hotkeys[1]) {  //print blocked on memory queue and their priorities
-            debugInfo[0] = 'B';
-            debugInfo[1] = 'L';
-            debugInfo[2] = 'O';
-            debugInfo[3] = 'C';
-            debugInfo[4] = 'K';
-            debugInfo[5] = 'E';
-            debugInfo[6] = 'D';
-            debugInfo[7] = ' ';
-            debugInfo[8] = 'M';
-            debugInfo[9] = 'E';
-            debugInfo[10] = 'M';
-            debugInfo[11] = ':';
-					  debugInfo[12] = '\r';
-            debugInfo[13] = '\n';
+            serializeReadyQueue(s_DebugInfo, j);
+        } else if (hotkey == s_Hotkeys[1]) { // print blocked on memory queue and their priorities
+            s_DebugInfo[0] = 'B';
+            s_DebugInfo[1] = 'L';
+            s_DebugInfo[2] = 'O';
+            s_DebugInfo[3] = 'C';
+            s_DebugInfo[4] = 'K';
+            s_DebugInfo[5] = 'E';
+            s_DebugInfo[6] = 'D';
+            s_DebugInfo[7] = ' ';
+            s_DebugInfo[8] = 'M';
+            s_DebugInfo[9] = 'E';
+            s_DebugInfo[10] = 'M';
+            s_DebugInfo[11] = ':';
+            s_DebugInfo[12] = '\r';
+            s_DebugInfo[13] = '\n';
             j = 14;
-            serializeBlockedOnMemoryQueue(debugInfo, j);
-        } else if (hotkey == hotkeys[2]) {  //print blocked on receive processes and their priorities
-            debugInfo[0] = 'B';
-            debugInfo[1] = 'L';
-            debugInfo[2] = 'O';
-            debugInfo[3] = 'C';
-            debugInfo[4] = 'K';
-            debugInfo[5] = 'E';
-            debugInfo[6] = 'D';
-            debugInfo[7] = ' ';
-            debugInfo[8] = 'R';
-            debugInfo[9] = 'E';
-            debugInfo[10] = 'C';
-            debugInfo[11] = ' ';
-            debugInfo[12] = '(';
-            debugInfo[13] = 'P';
-            debugInfo[14] = 'R';
-            debugInfo[15] = 'O';
-            debugInfo[16] = 'C';
-            debugInfo[17] = ',';
-            debugInfo[18] = 'P';
-            debugInfo[19] = 'R';
-            debugInfo[20] = 'I';
-            debugInfo[21] = ')';
-            debugInfo[22] = ':';
-						debugInfo[23] = '\r';
-            debugInfo[24] = '\n';
+            serializeBlockedOnMemoryQueue(s_DebugInfo, j);
+        } else if (hotkey == s_Hotkeys[2]) { // print blocked on receive processes and their priorities
+            s_DebugInfo[0] = 'B';
+            s_DebugInfo[1] = 'L';
+            s_DebugInfo[2] = 'O';
+            s_DebugInfo[3] = 'C';
+            s_DebugInfo[4] = 'K';
+            s_DebugInfo[5] = 'E';
+            s_DebugInfo[6] = 'D';
+            s_DebugInfo[7] = ' ';
+            s_DebugInfo[8] = 'R';
+            s_DebugInfo[9] = 'E';
+            s_DebugInfo[10] = 'C';
+            s_DebugInfo[11] = ' ';
+            s_DebugInfo[12] = '(';
+            s_DebugInfo[13] = 'P';
+            s_DebugInfo[14] = 'R';
+            s_DebugInfo[15] = 'O';
+            s_DebugInfo[16] = 'C';
+            s_DebugInfo[17] = ',';
+            s_DebugInfo[18] = 'P';
+            s_DebugInfo[19] = 'R';
+            s_DebugInfo[20] = 'I';
+            s_DebugInfo[21] = ')';
+            s_DebugInfo[22] = ':';
+            s_DebugInfo[23] = '\r';
+            s_DebugInfo[24] = '\n';
             j = 25;
-            serializeBlockedOnReceive(debugInfo, j);
+            serializeBlockedOnReceive(s_DebugInfo, j);
         }
         
-        for (i=0; debugInfo[i] != '\0'; i++) {
-            uart1_put_char(debugInfo[i]);
+        for (i=0; s_DebugInfo[i] != '\0'; i++) {
+            uart1_put_char(s_DebugInfo[i]);
         }
     }
 }
+
 #endif /* _DEBUG_HOTKEYS */

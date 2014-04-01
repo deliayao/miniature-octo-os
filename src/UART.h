@@ -7,7 +7,6 @@
 #ifndef UART_IRQ_H_
 #define UART_IRQ_H_
 
-/* typedefs */
 #include <stdint.h>
 #include "Utilities/Definitions.h"
 
@@ -17,12 +16,35 @@
 #define uart0_polling_init() uart_polling_init(0)
 #define uart1_polling_init() uart_polling_init(1)
 
-void initializeUARTProcess(void); // initializes the UART i-process
-     
-int uart_irq_init(int n_uart); // initializes n_uart to use interrupts
-int uart_polling_init(int n_uart); // initializes n_uart to use polling
+/**
+ * Initializes the UART i-process table item. Called during process
+ * initialization.
+ */
+void initializeUARTProcess(void);
 
-//debug functions
-void hotkeyHandler(char hotkey); //takes in a hotkey and eventually prints debug information to uart1
+/**
+ * Initializes n_uart to use interrupts.
+ * 
+ * @param   n_uart The UART to initialize.
+ * @return  The success/failure of the operation.
+ */
+int uart_irq_init(int n_uart);
+
+/**
+ * Initializes n_uart to use polling.
+ * 
+ * @param   n_uart The UART to initialize.
+ * @return  The success/failure of the operation.
+ */
+int uart_polling_init(int n_uart);
+
+#ifdef _DEBUG_HOTKEYS
+/**
+ * Takes in a hotkey and prints debug information to UART1.
+ * 
+ * @param   hotkey The hotkey to respond to.
+ */
+void hotkeyHandler(char hotkey);
+#endif /* _DEBUG_HOTKEYS */
 
 #endif /* ! UART_IRQ_H_ */

@@ -58,7 +58,7 @@ extern PROC_INIT g_ClockProcess;
 extern PROC_INIT g_KCDProcess;
 extern PROC_INIT g_CRTProcess;
 extern PROC_INIT g_TimerProcess;
-extern PROC_INIT UARTProcess;
+extern PROC_INIT g_UARTProcess;
 extern PROC_INIT g_SetPriorityProcess;
 
 extern MemoryQueue g_Heap;
@@ -263,10 +263,10 @@ void process_init() {
     g_proc_table[TIMER_IPROCESS].m_stack_size = g_TimerProcess.m_stack_size;
     g_proc_table[TIMER_IPROCESS].mpf_start_pc = g_TimerProcess.mpf_start_pc;
     
-    g_proc_table[UART_IPROCESS].m_pid = UARTProcess.m_pid;
-    g_proc_table[UART_IPROCESS].m_priority = UARTProcess.m_priority;
-    g_proc_table[UART_IPROCESS].m_stack_size = UARTProcess.m_stack_size;
-    g_proc_table[UART_IPROCESS].mpf_start_pc = UARTProcess.mpf_start_pc;
+    g_proc_table[UART_IPROCESS].m_pid = g_UARTProcess.m_pid;
+    g_proc_table[UART_IPROCESS].m_priority = g_UARTProcess.m_priority;
+    g_proc_table[UART_IPROCESS].m_stack_size = g_UARTProcess.m_stack_size;
+    g_proc_table[UART_IPROCESS].mpf_start_pc = g_UARTProcess.mpf_start_pc;
 
     // test processes
     for (i = 1; i <= NUM_TEST_PROCS; i++) {
