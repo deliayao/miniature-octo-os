@@ -83,7 +83,7 @@ void* k_request_memory_block(void) {
 #endif /* ! DEBUG_0 */
 
     while (isEmptyMemoryQueue(&g_Heap)) {
-        currentProcess->m_State = BLOCKED_MEM;
+        g_CurrentProcess->m_State = BLOCKED_MEM;
         k_release_processor();
     }
 
@@ -99,7 +99,7 @@ void memory_init(void) {
     p_end += 4;
 
     for (i = 0; i < NUM_PROCS; i++) {
-        processTable[i] = (PCB *)p_end;
+        g_ProcessTable[i] = (PCB *)p_end;
         p_end += sizeof(PCB);
     }
 

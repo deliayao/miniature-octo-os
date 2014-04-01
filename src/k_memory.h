@@ -11,7 +11,7 @@
 #include "Utilities/ProcessQueue.h"
 #include "Utilities/Types.h"
 
-extern PCB* currentProcess; // points to the current RUNNING process
+extern PCB* g_CurrentProcess; // points to the current RUNNING process
 
 /**
  * End address of RTX Image. This symbol is defined in the scatter file (see
@@ -19,7 +19,7 @@ extern PCB* currentProcess; // points to the current RUNNING process
  */
 extern unsigned int Image$$RW_IRAM1$$ZI$$Limit; 
 extern PROC_INIT g_proc_table[NUM_PROCS];
-extern PCB* processTable[NUM_PROCS]; // kernel process table
+extern PCB* g_ProcessTable[NUM_PROCS]; // kernel process table
 
 /**
  * Allocates stack space for a process, aligned to 8 bytes boundary.
