@@ -105,14 +105,14 @@ void initializeCRTProcess(void) {
     g_CRTProcess.m_pid = (U32)CRT_PROCESS;
     g_CRTProcess.m_priority = PRIVILEGED;
     g_CRTProcess.m_stack_size = 0x100;
-    g_CRTProcess.mpf_start_pc = &rung_CRTProcess;
+    g_CRTProcess.mpf_start_pc = &runCRTProcess;
 }
 
 void initializeKCDProcess(void) {
     g_KCDProcess.m_pid = (U32)KCD_PROCESS;
     g_KCDProcess.m_priority = PRIVILEGED;
     g_KCDProcess.m_stack_size = 0x100;
-    g_KCDProcess.mpf_start_pc = &rung_KCDProcess;
+    g_KCDProcess.mpf_start_pc = &runKCDProcess;
 }
 
 void initializeNullProcess() {
