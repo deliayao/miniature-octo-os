@@ -8,12 +8,13 @@
 
 #include "Utilities/k_rtx.h"
 
-/* Functions */
-
+/**
+ * Initializes the kernel.
+ */
 void k_rtx_init(void);
 
 extern int k_release_processor(void);
-extern void *k_request_memory_block(void);
-extern int k_release_memory_block(void *);
+extern void* k_request_memory_block(void);
+extern int k_release_memory_block(void*);
 
 #endif /* ! K_RTX_INIT_H_ */
