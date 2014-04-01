@@ -40,7 +40,7 @@ extern PROC_INIT timerProcess;
 extern PROC_INIT UARTProcess;
 extern PROC_INIT g_SetPriorityProcess;
 
-extern MemoryQueue heap;
+extern MemoryQueue g_Heap;
 extern volatile uint32_t g_timer_count;
 
 /**
@@ -303,7 +303,7 @@ int deliverMessage(int sourceProcess, int envelopeDestinationProcess, int destin
     PCB* destination = processTable[destinationProcess];
 	U32 node = (U32)message - sizeof(Envelope) - sizeof(Node); // for error checking
 	
-	if (!isValidNode(&heap, (Node*)node)) { // make sure it's a valid memory block
+	if (!isValidNode(&g_Heap, (Node*)node)) { // make sure it's a valid memory block
 // during performance testing, we repeatedly try to send a message using a dummy memory block
 // so the memory block will be invalid, but we want to send it anyway
 // so do not return here
