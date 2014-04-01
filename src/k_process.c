@@ -52,7 +52,7 @@ static PriorityQueue s_BlockedOnMemoryQueue;
 
 // for process initialization
 extern PROC_INIT g_test_procs[NUM_TEST_PROCS];
-extern PROC_INIT stressProcesses[NUM_STRESS_PROCS];
+extern PROC_INIT g_StressProcesses[NUM_STRESS_PROCS];
 extern PROC_INIT g_NullProcess;
 extern PROC_INIT g_ClockProcess;
 extern PROC_INIT g_KCDProcess;
@@ -278,10 +278,10 @@ void process_init() {
     
     // stress test processes
     for (i = 1; i <= NUM_STRESS_PROCS; i++) {
-        g_proc_table[i + 6].m_pid = stressProcesses[i - 1].m_pid;
-        g_proc_table[i + 6].m_priority = stressProcesses[i - 1].m_priority;
-        g_proc_table[i + 6].m_stack_size = stressProcesses[i - 1].m_stack_size;
-        g_proc_table[i + 6].mpf_start_pc = stressProcesses[i - 1].mpf_start_pc;
+        g_proc_table[i + 6].m_pid = g_StressProcesses[i - 1].m_pid;
+        g_proc_table[i + 6].m_priority = g_StressProcesses[i - 1].m_priority;
+        g_proc_table[i + 6].m_stack_size = g_StressProcesses[i - 1].m_stack_size;
+        g_proc_table[i + 6].mpf_start_pc = g_StressProcesses[i - 1].mpf_start_pc;
     }
 
     // initialize exception stack frame (i.e. initial context) for each process
